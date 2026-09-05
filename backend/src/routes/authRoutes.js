@@ -1,20 +1,21 @@
 const express = require('express');
 const router = express.Router();
 
-// Import the controller functions we just created
 const { register, login } = require('../controllers/authController');
+const { protect } = require('../middleware/authMiddleware');
 
-// ============================================
-// PUBLIC ROUTES (no token needed)
-// ============================================
-
-// Register a new user
-// POST /api/auth/register
+// Public routes
 router.post('/register', register);
-
-// Login an existing user
-// POST /api/auth/login
 router.post('/login', login);
+
+// Protected route – only works with a valid token
+router.get('/me', protect, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'You are authorized',
+    user: req.user
+  });
+});
 
 module.exports = router;
 
