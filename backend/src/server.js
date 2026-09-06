@@ -40,6 +40,14 @@ app.get('/', (req, res) => {
 });
 
 // ============================================
+// ERROR HANDLING (must be registered LAST, after all routes)
+// ============================================
+const { notFound, errorHandler } = require('./middleware/errorHandler');
+
+app.use(notFound);
+app.use(errorHandler);
+
+// ============================================
 // START THE SERVER
 // ============================================
 
@@ -56,5 +64,9 @@ helmet() adds basic security headers.
 cors() allows the frontend (later) to talk to this backend.
 express.json() lets us read the data people send in requests.
 app.use('/api/auth', authRoutes) connects our register and login routes.
+notFound catches any URL that doesn't match a route and returns a clean 404.
+errorHandler catches every error passed via next(error) anywhere in the app and
+sends back a safe message - no stack traces, no internal details - while logging
+the real error to our own console for debugging.
 app.listen(...) actually starts the server so it can receive requests.
 */

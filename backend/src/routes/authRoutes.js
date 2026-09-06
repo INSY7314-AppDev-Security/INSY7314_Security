@@ -3,10 +3,15 @@ const router = express.Router();
 
 const { register, login } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
+const {
+  registerValidationRules,
+  loginValidationRules,
+  handleValidationErrors
+} = require('../middleware/validators');
 
 // Public routes
-router.post('/register', register);
-router.post('/login', login);
+router.post('/register', registerValidationRules, handleValidationErrors, register);
+router.post('/login', loginValidationRules, handleValidationErrors, login);
 
 // Protected route – only works with a valid token
 router.get('/me', protect, (req, res) => {
