@@ -60,18 +60,3 @@ module.exports = {
   loginValidationRules,
   handleValidationErrors
 };
-
-//Plain English Breakdown for clarity
-/*
-registerValidationRules checks that name, email, password and role all look correct
-before database database is touched or anything is hashed, saving wasted work and
-stops bad data getting in.
-
-loginValidationRules only checks that email and password were sent, we don't check
-password strength on login because we're just checking it against what's already stored.
-
-handleValidationErrors runs after the rules above. If express-validator found any
-problems, it stops the request right there with a clean 400 response listing every
-field that failed. If everything is fine, it calls next() and lets the request
-continue to the controller.
-*/

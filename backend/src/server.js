@@ -77,22 +77,3 @@ const httpsOptions = {
 https.createServer(httpsOptions, app).listen(PORT, () => {
   console.log(`Server is running securely on https://localhost:${PORT}`);
 });
-
-//Plain English Breakdown for clarity
-/*
-require('dotenv').config() loads the secret values from the .env file.
-helmet() adds basic security headers.
-cors() allows the frontend (later) to talk to this backend.
-express.json() lets us read the data people send in requests.
-app.use('/api/auth', authRoutes) connects our register and login routes.
-notFound catches any URL that doesn't match a route and returns a clean 404.
-errorHandler catches every error passed via next(error) anywhere in the app and
-sends back a safe message - no stack traces, no internal details - while logging
-the real error to our own console for debugging.
-app.listen(...) actually starts the server so it can receive requests.
-
-https.createServer(...) wraps our Express app in an encrypted HTTPS connection
-using a local certificate, instead of plain unencrypted HTTP. This matters
-because register/login send passwords and tokens over the network - HTTPS
-stops anyone intercepting that traffic from reading it.
-*/
