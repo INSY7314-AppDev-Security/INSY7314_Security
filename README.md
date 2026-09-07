@@ -1125,7 +1125,7 @@ The video demonstrates the Part 1 backend running over HTTPS and shows:
 # Repository
 
 **GitHub Repository:**
-`<INSERT GITHUB REPOSITORY LINK HERE>`
+https://github.com/INSY7314-AppDev-Security/INSY7314_Security.git
 
 ---
 
