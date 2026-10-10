@@ -1,0 +1,1 @@
+// Gig model – to be completed in Part 2
