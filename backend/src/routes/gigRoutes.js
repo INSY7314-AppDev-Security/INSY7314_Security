@@ -1,4 +1,3 @@
-console.log('gigRoutes.js loaded from', __filename);
 const express = require('express');
 const router = express.Router();
 
