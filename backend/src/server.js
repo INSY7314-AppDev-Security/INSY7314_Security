@@ -10,6 +10,7 @@ const path = require('path');
 
 // Import our auth routes
 const authRoutes = require('./routes/authRoutes');
+const gigRoutes = require('./routes/gigRoutes');
 
 // Create the Express application
 const app = express();
@@ -43,6 +44,7 @@ app.use(express.json());
 
 // All authentication routes start with /api/auth
 app.use('/api/auth', authRoutes);
+app.use('/api/gigs', gigRoutes);
 
 // Simple test route to check if the server is alive
 app.get('/', (req, res) => {
