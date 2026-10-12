@@ -7,14 +7,15 @@ const helmet = require('helmet');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const connectDB = require('./config/db');
+const { sanitizeInput } = require('./middleware/sanitize');
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
 const gigRoutes = require('./routes/gigRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
-
-// Import database connection
-const connectDB = require('./config/db');
+const transactionRoutes = require('./routes/transactionRoutes');
+const incomeRoutes = require('./routes/incomeRoutes');
 
 // Create the Express application
 const app = express();
@@ -38,6 +39,8 @@ app.use(helmet({
 app.use(cors());
 app.use(express.json());
 
+app.use(sanitizeInput);
+
 // ============================================
 // ROUTES
 // ============================================
@@ -45,6 +48,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/gigs', gigRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/income', incomeRoutes);
 
 app.get('/', (req, res) => {
   res.json({
@@ -80,7 +85,6 @@ const httpsOptions = {
   cert: fs.readFileSync(certPath),
 };
 
-// Connect to MongoDB first, then start the server
 connectDB().then(() => {
   https.createServer(httpsOptions, app).listen(PORT, () => {
     console.log(`Server is running securely on https://localhost:${PORT}`);

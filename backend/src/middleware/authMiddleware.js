@@ -34,4 +34,17 @@ function protect(req, res, next) {
   }
 }
 
-module.exports = { protect };
+// Only lets certain roles through, for example authorizeRoles('freelancer')
+function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied: you do not have permission to do this'
+      });
+    }
+    next();
+  };
+}
+
+module.exports = { protect, authorizeRoles };
