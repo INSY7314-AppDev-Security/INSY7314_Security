@@ -3,26 +3,30 @@ import axios from 'axios';
 
 function Booking() {
   const [gigId, setGigId] = useState('');
-  const [message, setMessage] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
     if (!token) {
-      setMessage('Please log in first. Only clients can book gigs.');
+      showToast('Please log in first. Only clients can book gigs.', 'error');
       return;
     }
 
-    setMessage('Booking the gig...');
     try {
       await axios.post('https://localhost:5000/api/bookings',
         { gigId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setMessage('Booking successful. The freelancer has been notified.');
+      showToast('Booking successful. The freelancer has been notified.', 'success');
       setGigId('');
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Could not book the gig. Check the Gig ID and make sure you are logged in as a client.');
+      showToast(err.response?.data?.message || 'Could not book the gig. Check the Gig ID and make sure you are logged in as a client.', 'error');
     }
   };
 
@@ -43,9 +47,19 @@ function Booking() {
           Book Gig
         </button>
       </form>
-      <p style={{ color: message.includes('successful') ? 'green' : message ? 'red' : '#333', marginTop: '12px' }}>
-        {message}
-      </p>
+
+      {toast.show && (
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          borderRadius: '6px',
+          backgroundColor: toast.type === 'success' ? '#d4edda' : '#f8d7da',
+          color: toast.type === 'success' ? '#155724' : '#721c24',
+          border: `1px solid ${toast.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+        }}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,12 @@ import axios from 'axios';
 
 function CreateGig() {
   const [form, setForm] = useState({ title: '', description: '', price: '', category: '' });
-  const [message, setMessage] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -13,19 +18,18 @@ function CreateGig() {
     e.preventDefault();
     const token = localStorage.getItem('token');
     if (!token) {
-      setMessage('Please log in first. Only freelancers can create gigs.');
+      showToast('Please log in first. Only freelancers can create gigs.', 'error');
       return;
     }
 
-    setMessage('Creating your gig...');
     try {
       await axios.post('https://localhost:5000/api/gigs', form, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setMessage('Gig created. Clients can now see it and book it.');
+      showToast('Gig created. Clients can now see it and book it.', 'success');
       setForm({ title: '', description: '', price: '', category: '' });
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Could not create gig. Make sure you are logged in as a freelancer.');
+      showToast(err.response?.data?.message || 'Could not create gig. Make sure you are logged in as a freelancer.', 'error');
     }
   };
 
@@ -54,9 +58,19 @@ function CreateGig() {
           Create Gig
         </button>
       </form>
-      <p style={{ color: message.includes('created') ? 'green' : message ? 'red' : '#333', marginTop: '12px' }}>
-        {message}
-      </p>
+
+      {toast.show && (
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          borderRadius: '6px',
+          backgroundColor: toast.type === 'success' ? '#d4edda' : '#f8d7da',
+          color: toast.type === 'success' ? '#155724' : '#721c24',
+          border: `1px solid ${toast.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+        }}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
