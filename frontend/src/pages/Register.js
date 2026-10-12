@@ -14,6 +14,9 @@ function Register() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleMouseEnter = (e) => { e.target.style.backgroundColor = '#1F4E79'; };
+  const handleMouseLeave = (e) => { e.target.style.backgroundColor = '#2E75B6'; };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -49,7 +52,12 @@ function Register() {
           <option value="client">I am a Client</option>
           <option value="freelancer">I am a Freelancer</option>
         </select>
-        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+        <button
+          type="submit"
+          style={{ padding: '10px 18px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.2s' }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           Create Account
         </button>
       </form>

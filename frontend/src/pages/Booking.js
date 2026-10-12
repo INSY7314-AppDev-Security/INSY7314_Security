@@ -10,6 +10,9 @@ function Booking() {
     setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
   };
 
+  const handleMouseEnter = (e) => { e.target.style.backgroundColor = '#1F4E79'; };
+  const handleMouseLeave = (e) => { e.target.style.backgroundColor = '#2E75B6'; };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
@@ -43,7 +46,12 @@ function Booking() {
           value={gigId}
           onChange={(e) => setGigId(e.target.value)}
         />
-        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+        <button
+          type="submit"
+          style={{ padding: '10px 18px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.2s' }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           Book Gig
         </button>
       </form>

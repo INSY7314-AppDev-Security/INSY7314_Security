@@ -14,6 +14,9 @@ function CreateGig() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleMouseEnter = (e) => { e.target.style.backgroundColor = '#1F4E79'; };
+  const handleMouseLeave = (e) => { e.target.style.backgroundColor = '#2E75B6'; };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
@@ -54,7 +57,12 @@ function CreateGig() {
         <input style={inputStyle} name="description" placeholder="Short description of the service" value={form.description} onChange={handleChange} />
         <input style={inputStyle} name="price" type="number" placeholder="Price in Rands" value={form.price} onChange={handleChange} />
         <input style={inputStyle} name="category" placeholder="Category (e.g. Web Development)" value={form.category} onChange={handleChange} />
-        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+        <button
+          type="submit"
+          style={{ padding: '10px 18px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.2s' }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           Create Gig
         </button>
       </form>

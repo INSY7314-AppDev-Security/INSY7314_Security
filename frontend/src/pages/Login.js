@@ -14,6 +14,9 @@ function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleMouseEnter = (e) => { e.target.style.backgroundColor = '#1F4E79'; };
+  const handleMouseLeave = (e) => { e.target.style.backgroundColor = '#2E75B6'; };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -45,7 +48,12 @@ function Login() {
       <form onSubmit={handleSubmit}>
         <input style={inputStyle} name="email" placeholder="Email address" value={form.email} onChange={handleChange} />
         <input style={inputStyle} name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} />
-        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+        <button
+          type="submit"
+          style={{ padding: '10px 18px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.2s' }}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           Log In
         </button>
       </form>
