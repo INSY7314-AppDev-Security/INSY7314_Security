@@ -12,6 +12,10 @@ const { sanitizeInput } = require('./middleware/sanitize');
 
 // Import our auth routes
 const authRoutes = require('./routes/authRoutes');
+const gigRoutes = require('./routes/gigRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const incomeRoutes = require('./routes/incomeRoutes');
 
 // Create the Express application
 const app = express();
@@ -47,6 +51,10 @@ app.use(sanitizeInput);
 
 // All authentication routes start with /api/auth
 app.use('/api/auth', authRoutes);
+app.use('/api/gigs', gigRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/income', incomeRoutes);
 
 // Simple test route to check if the server is alive
 app.get('/', (req, res) => {

@@ -11,6 +11,17 @@ function errorHandler(err, req, res, next) {
   //Log full error on the server
   console.error('ERROR:', err);
 
+  //Known client mistakes get a clear 400/409 instead of a generic 500
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ success: false, message: 'Invalid JSON in request body' });
+  }
+  if (err.name === 'ValidationError' || err.name === 'CastError') {
+    return res.status(400).json({ success: false, message: 'Invalid data provided' });
+  }
+  if (err.code === 11000) {
+    return res.status(409).json({ success: false, message: 'That record already exists' });
+  }
+
   //Never leak stack traces or internal details to the client
   const statusCode = err.statusCode && err.statusCode >= 400 ? err.statusCode : 500;
 
