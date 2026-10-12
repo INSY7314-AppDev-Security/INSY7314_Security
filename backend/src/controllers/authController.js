@@ -2,9 +2,6 @@ const User = require('../models/User');
 const { hashPassword, comparePassword } = require('../utils/hashPassword');
 const generateToken = require('../utils/generateToken');
 
-// ============================================
-// REGISTER a new user
-// ============================================
 async function register(req, res, next) {
   try {
     const { name, email, password, role } = req.body;
@@ -18,7 +15,6 @@ async function register(req, res, next) {
       });
     }
 
-    // 2. Hash the password (never store plain text)
     const hashedPassword = await hashPassword(password);
 
     // 3. Create and save the new user in MongoDB
@@ -34,13 +30,12 @@ async function register(req, res, next) {
       success: true,
       message: 'User registered successfully',
       user: {
-        id: newUser.id,
+        id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role
       }
     });
-
   } catch (error) {
     // 11000 means MongoDB found a duplicate email
     if (error.code === 11000) {
@@ -53,9 +48,6 @@ async function register(req, res, next) {
   }
 }
 
-// ============================================
-// LOGIN an existing user
-// ============================================
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
@@ -69,7 +61,6 @@ async function login(req, res, next) {
       });
     }
 
-    // 2. Check if the password is correct
     const isPasswordCorrect = await comparePassword(password, user.password);
     if (!isPasswordCorrect) {
       return res.status(401).json({
@@ -78,22 +69,19 @@ async function login(req, res, next) {
       });
     }
 
-    // 3. Create a JWT token that contains id and role
     const token = generateToken(user);
 
-    // 4. Send the token and user info back
     res.status(200).json({
       success: true,
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
+        id: user._id,
         name: user.name,
         email: user.email,
         role: user.role
       }
     });
-
   } catch (error) {
     next(error);
   }
