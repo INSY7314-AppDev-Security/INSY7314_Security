@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "seed:admin": "node src/seed/createAdmin.js"
+    "seed:admin": "node src/seed/createAdmin.js",
+    "test:api": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure",
+    "test:api:report": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure -r cli,htmlextra --reporter-htmlextra-export ../docs/newman/newman-report.html"
   },
   "keywords": [],
   "author": "HustleHub+ Team",
@@ -23,6 +25,8 @@
     "mongoose": "^9.11.1"
   },
   "devDependencies": {
+    "newman": "^6.2.3",
+    "newman-reporter-htmlextra": "^1.23.1",
     "nodemon": "^3.1.14",
     "selfsigned": "^5.5.0"
   }
