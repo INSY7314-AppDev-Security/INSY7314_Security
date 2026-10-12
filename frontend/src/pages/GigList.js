@@ -21,6 +21,9 @@ function GigList() {
   return (
     <div>
       <h2>Available Gigs</h2>
+      <p style={{ color: '#555', fontSize: '14px' }}>
+  Browse available services. To book one, copy its ID and go to the Book a Gig page (you must be logged in as a client).
+</p>
       {message && <p>{message}</p>}
       {gigs.map((gig) => (
         <div key={gig._id} style={{
