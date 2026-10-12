@@ -22,8 +22,8 @@ function GigList() {
     <div>
       <h2>Available Gigs</h2>
       <p style={{ color: '#555', fontSize: '14px' }}>
-  Browse available services. To book one, copy its ID and go to the Book a Gig page (you must be logged in as a client).
-</p>
+        Browse available services. To book one, copy its ID and go to the Book a Gig page (you must be logged in as a client).
+      </p>
       {message && <p>{message}</p>}
       {gigs.map((gig) => (
         <div key={gig._id} style={{
@@ -37,6 +37,9 @@ function GigList() {
           <p style={{ margin: '4px 0' }}>{gig.description}</p>
           <p style={{ margin: '4px 0', fontWeight: 'bold' }}>R{gig.price}</p>
           <p style={{ margin: '4px 0', color: '#666' }}>{gig.category}</p>
+          <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#888' }}>
+            Gig ID: <strong>{gig._id}</strong>
+          </p>
         </div>
       ))}
     </div>
