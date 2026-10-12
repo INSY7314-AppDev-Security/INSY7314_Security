@@ -3,7 +3,12 @@ import axios from 'axios';
 
 function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [message, setMessage] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -11,13 +16,13 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('Logging in...');
     try {
       const res = await axios.post('https://localhost:5000/api/auth/login', form);
       localStorage.setItem('token', res.data.token);
-      setMessage('Logged in successfully. You can now browse or create gigs.');
+      showToast('Logged in successfully. You can now browse or create gigs.', 'success');
+      setForm({ email: '', password: '' });
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Login failed. Check your email and password.');
+      showToast(err.response?.data?.message || 'Login failed. Check your email and password.', 'error');
     }
   };
 
@@ -38,15 +43,25 @@ function Login() {
         Use the email and password you registered with. After logging in you can browse gigs, create a gig, or book one.
       </p>
       <form onSubmit={handleSubmit}>
-        <input style={inputStyle} name="email" placeholder="Email address" onChange={handleChange} />
-        <input style={inputStyle} name="password" type="password" placeholder="Password" onChange={handleChange} />
+        <input style={inputStyle} name="email" placeholder="Email address" value={form.email} onChange={handleChange} />
+        <input style={inputStyle} name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} />
         <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
           Log In
         </button>
       </form>
-      <p style={{ color: message.includes('successfully') ? 'green' : message ? 'red' : '#333', marginTop: '12px' }}>
-        {message}
-      </p>
+
+      {toast.show && (
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          borderRadius: '6px',
+          backgroundColor: toast.type === 'success' ? '#d4edda' : '#f8d7da',
+          color: toast.type === 'success' ? '#155724' : '#721c24',
+          border: `1px solid ${toast.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+        }}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
