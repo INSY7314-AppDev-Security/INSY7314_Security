@@ -3,7 +3,12 @@ import axios from 'axios';
 
 function Register() {
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'client' });
-  const [message, setMessage] = useState('');
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
+
+  const showToast = (message, type) => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: '' }), 3000);
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -11,12 +16,12 @@ function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage('Creating your account...');
     try {
       await axios.post('https://localhost:5000/api/auth/register', form);
-      setMessage('Account created. You can now log in.');
+      showToast('Account created. You can now log in.', 'success');
+      setForm({ name: '', email: '', password: '', role: 'client' });
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Registration failed. Please check your details.');
+      showToast(err.response?.data?.message || 'Registration failed. Please check your details.', 'error');
     }
   };
 
@@ -37,10 +42,10 @@ function Register() {
         Choose Client if you want to book services. Choose Freelancer if you want to offer services.
       </p>
       <form onSubmit={handleSubmit}>
-        <input style={inputStyle} name="name" placeholder="Your full name" onChange={handleChange} />
-        <input style={inputStyle} name="email" placeholder="Email address" onChange={handleChange} />
-        <input style={inputStyle} name="password" type="password" placeholder="Password (min 8 characters)" onChange={handleChange} />
-        <select style={inputStyle} name="role" onChange={handleChange}>
+        <input style={inputStyle} name="name" placeholder="Your full name" value={form.name} onChange={handleChange} />
+        <input style={inputStyle} name="email" placeholder="Email address" value={form.email} onChange={handleChange} />
+        <input style={inputStyle} name="password" type="password" placeholder="Password (min 8 characters)" value={form.password} onChange={handleChange} />
+        <select style={inputStyle} name="role" value={form.role} onChange={handleChange}>
           <option value="client">I am a Client</option>
           <option value="freelancer">I am a Freelancer</option>
         </select>
@@ -48,9 +53,19 @@ function Register() {
           Create Account
         </button>
       </form>
-      <p style={{ color: message.includes('created') ? 'green' : message ? 'red' : '#333', marginTop: '12px' }}>
-        {message}
-      </p>
+
+      {toast.show && (
+        <div style={{
+          marginTop: '16px',
+          padding: '12px',
+          borderRadius: '6px',
+          backgroundColor: toast.type === 'success' ? '#d4edda' : '#f8d7da',
+          color: toast.type === 'success' ? '#155724' : '#721c24',
+          border: `1px solid ${toast.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+        }}>
+          {toast.message}
+        </div>
+      )}
     </div>
   );
 }
