@@ -2,12 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 
 function CreateGig() {
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    price: '',
-    category: ''
-  });
+  const [form, setForm] = useState({ title: '', description: '', price: '', category: '' });
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
@@ -33,17 +28,29 @@ function CreateGig() {
     }
   };
 
+  const inputStyle = {
+    display: 'block',
+    width: '100%',
+    maxWidth: '300px',
+    padding: '8px',
+    margin: '8px 0',
+    border: '1px solid #ccc',
+    borderRadius: '4px'
+  };
+
   return (
     <div>
       <h2>Create a Gig</h2>
       <form onSubmit={handleSubmit}>
-        <input name="title" placeholder="Title" value={form.title} onChange={handleChange} /><br />
-        <input name="description" placeholder="Description" value={form.description} onChange={handleChange} /><br />
-        <input name="price" type="number" placeholder="Price" value={form.price} onChange={handleChange} /><br />
-        <input name="category" placeholder="Category" value={form.category} onChange={handleChange} /><br />
-        <button type="submit">Create Gig</button>
+        <input style={inputStyle} name="title" placeholder="Title" value={form.title} onChange={handleChange} />
+        <input style={inputStyle} name="description" placeholder="Description" value={form.description} onChange={handleChange} />
+        <input style={inputStyle} name="price" type="number" placeholder="Price" value={form.price} onChange={handleChange} />
+        <input style={inputStyle} name="category" placeholder="Category" value={form.category} onChange={handleChange} />
+        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+          Create Gig
+        </button>
       </form>
-      <p>{message}</p>
+      <p style={{ color: message.includes('success') ? 'green' : 'red' }}>{message}</p>
     </div>
   );
 }

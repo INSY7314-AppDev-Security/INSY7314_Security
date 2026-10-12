@@ -20,15 +20,27 @@ function Login() {
     }
   };
 
+  const inputStyle = {
+    display: 'block',
+    width: '100%',
+    maxWidth: '300px',
+    padding: '8px',
+    margin: '8px 0',
+    border: '1px solid #ccc',
+    borderRadius: '4px'
+  };
+
   return (
     <div>
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <input name="email" placeholder="Email" onChange={handleChange} />
-        <input name="password" type="password" placeholder="Password" onChange={handleChange} />
-        <button type="submit">Login</button>
+        <input style={inputStyle} name="email" placeholder="Email" onChange={handleChange} />
+        <input style={inputStyle} name="password" type="password" placeholder="Password" onChange={handleChange} />
+        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+          Login
+        </button>
       </form>
-      <p>{message}</p>
+      <p style={{ color: message.includes('success') ? 'green' : 'red' }}>{message}</p>
     </div>
   );
 }
