@@ -7,6 +7,8 @@ const helmet = require('helmet');
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const connectDB = require('./config/db');
+const { sanitizeInput } = require('./middleware/sanitize');
 
 // Import our auth routes
 const authRoutes = require('./routes/authRoutes');
@@ -36,6 +38,8 @@ app.use(cors());
 
 // Allow the server to read JSON data from requests
 app.use(express.json());
+
+app.use(sanitizeInput);
 
 // ============================================
 // ROUTES
@@ -84,6 +88,8 @@ const httpsOptions = {
   cert: fs.readFileSync(certPath),
 };
 
-https.createServer(httpsOptions, app).listen(PORT, () => {
-  console.log(`Server is running securely on https://localhost:${PORT}`);
+connectDB().then(() => {
+  https.createServer(httpsOptions, app).listen(PORT, () => {
+    console.log(`Server is running securely on https://localhost:${PORT}`);
+  });
 });
