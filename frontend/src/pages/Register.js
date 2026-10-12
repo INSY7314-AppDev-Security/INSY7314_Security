@@ -19,20 +19,32 @@ function Register() {
     }
   };
 
+  const inputStyle = {
+    display: 'block',
+    width: '100%',
+    maxWidth: '300px',
+    padding: '8px',
+    margin: '8px 0',
+    border: '1px solid #ccc',
+    borderRadius: '4px'
+  };
+
   return (
     <div>
       <h2>Register</h2>
       <form onSubmit={handleSubmit}>
-        <input name="name" placeholder="Name" onChange={handleChange} />
-        <input name="email" placeholder="Email" onChange={handleChange} />
-        <input name="password" type="password" placeholder="Password" onChange={handleChange} />
-        <select name="role" onChange={handleChange}>
+        <input style={inputStyle} name="name" placeholder="Name" onChange={handleChange} />
+        <input style={inputStyle} name="email" placeholder="Email" onChange={handleChange} />
+        <input style={inputStyle} name="password" type="password" placeholder="Password" onChange={handleChange} />
+        <select style={inputStyle} name="role" onChange={handleChange}>
           <option value="client">Client</option>
           <option value="freelancer">Freelancer</option>
         </select>
-        <button type="submit">Register</button>
+        <button type="submit" style={{ padding: '8px 16px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '4px' }}>
+          Register
+        </button>
       </form>
-      <p>{message}</p>
+      <p style={{ color: message.includes('success') ? 'green' : 'red' }}>{message}</p>
     </div>
   );
 }
