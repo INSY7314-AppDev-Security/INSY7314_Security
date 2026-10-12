@@ -1,4 +1,4 @@
-const { findUserByEmail, addUser } = require('../models/userStore');
+const User = require('../models/User');
 const { hashPassword, comparePassword } = require('../utils/hashPassword');
 const generateToken = require('../utils/generateToken');
 
@@ -10,7 +10,7 @@ async function register(req, res, next) {
     const { name, email, password, role } = req.body;
 
     // 1. Check if the email is already registered
-    const existingUser = findUserByEmail(email);
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(409).json({
         success: false,
@@ -21,19 +21,15 @@ async function register(req, res, next) {
     // 2. Hash the password (never store plain text)
     const hashedPassword = await hashPassword(password);
 
-    // 3. Create the new user object
-    const newUser = {
-      id: Date.now().toString(),   // simple unique ID for Part 1
+    // 3. Create and save the new user in MongoDB
+    const newUser = await User.create({
       name,
       email,
-      password: hashedPassword,    // store only the hashed version
-      role: role || 'client'       // default role is client
-    };
+      password: hashedPassword,
+      role: role || 'client'    // default role is client
+    });
 
-    // 4. Save the user
-    addUser(newUser);
-
-    // 5. Send success response (never send the password back)
+    // 4. Send success response (never send the password back)
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -46,7 +42,14 @@ async function register(req, res, next) {
     });
 
   } catch (error) {
-    next(error);   // pass any error to the error handler
+    // 11000 means MongoDB found a duplicate email
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email already registered'
+      });
+    }
+    next(error);   // pass any other error to the error handler
   }
 }
 
@@ -57,8 +60,8 @@ async function login(req, res, next) {
   try {
     const { email, password } = req.body;
 
-    // 1. Find the user by email
-    const user = findUserByEmail(email);
+    // 1. Find the user by email (+password brings back the hidden hash)
+    const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -106,17 +109,16 @@ module.exports = {
 Register function:
 
 Takes the name, email, password and role from the request.
-Checks if that email is already used - if yes, returns error 409.
+Checks MongoDB to see if that email is already used. If yes, returns error 409.
 Hashes the password using the tool we created earlier.
-Creates a new user object (with a simple ID).
-Saves the user into our in-memory store.
+Saves the new user in MongoDB.
 Sends back a success message without the password.
 
 Login function:
 
 Takes email and password.
-Looks for the user.
+Looks for the user in MongoDB.
 Compares the typed password with the stored hashed password.
-If everything is correct, creates a JWT that contains the user’s id and role.
+If everything is correct, creates a JWT that contains the user's id and role.
 Sends the token back to the user.
 */
