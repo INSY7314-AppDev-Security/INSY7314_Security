@@ -65,6 +65,18 @@ function App() {
         {page === 'create' && <CreateGig />}
         {page === 'book' && <Booking />}
       </div>
+
+      <footer style={{
+        marginTop: '40px',
+        padding: '16px',
+        textAlign: 'center',
+        borderTop: '1px solid #ddd',
+        color: '#666',
+        fontSize: '13px'
+      }}>
+        <strong>HustleHub+</strong> — Built by Justin Fussell, Thomas Pheiffer, Isabelle Devlin & Matteo Nusca<br />
+        INSY7314 • Group POE • 2026
+      </footer>
     </div>
   );
 }
