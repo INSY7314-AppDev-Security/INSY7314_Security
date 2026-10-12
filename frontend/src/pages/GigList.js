@@ -23,11 +23,17 @@ function GigList() {
       <h2>Available Gigs</h2>
       {message && <p>{message}</p>}
       {gigs.map((gig) => (
-        <div key={gig._id} style={{ border: '1px solid #ccc', margin: '10px 0', padding: '10px' }}>
-          <h3>{gig.title}</h3>
-          <p>{gig.description}</p>
-          <p>Price: R{gig.price}</p>
-          <p>Category: {gig.category}</p>
+        <div key={gig._id} style={{
+          border: '1px solid #ddd',
+          borderRadius: '6px',
+          padding: '16px',
+          margin: '12px 0',
+          backgroundColor: 'white'
+        }}>
+          <h3 style={{ margin: '0 0 8px 0', color: '#1F4E79' }}>{gig.title}</h3>
+          <p style={{ margin: '4px 0' }}>{gig.description}</p>
+          <p style={{ margin: '4px 0', fontWeight: 'bold' }}>R{gig.price}</p>
+          <p style={{ margin: '4px 0', color: '#666' }}>{gig.category}</p>
         </div>
       ))}
     </div>
