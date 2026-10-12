@@ -8,17 +8,21 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-// Import our auth routes
+// Import routes
 const authRoutes = require('./routes/authRoutes');
+const gigRoutes = require('./routes/gigRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+
+// Import database connection
+const connectDB = require('./config/db');
 
 // Create the Express application
 const app = express();
 
 // ============================================
-// MIDDLEWARE (runs on every request)
+// MIDDLEWARE
 // ============================================
 
-// Security headers
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -31,20 +35,17 @@ app.use(helmet({
   }
 }));
 
-// Allow requests from other origins (needed later for frontend)
 app.use(cors());
-
-// Allow the server to read JSON data from requests
 app.use(express.json());
 
 // ============================================
 // ROUTES
 // ============================================
 
-// All authentication routes start with /api/auth
 app.use('/api/auth', authRoutes);
+app.use('/api/gigs', gigRoutes);
+app.use('/api/bookings', bookingRoutes);
 
-// Simple test route to check if the server is alive
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -53,7 +54,7 @@ app.get('/', (req, res) => {
 });
 
 // ============================================
-// ERROR HANDLING (must be registered LAST, after all routes)
+// ERROR HANDLING
 // ============================================
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
@@ -61,21 +62,16 @@ app.use(notFound);
 app.use(errorHandler);
 
 // ============================================
-// START THE SERVER OVER HTTPS
+// START THE SERVER
 // ============================================
 
 const PORT = process.env.PORT || 5000;
 
-// Paths to our local self-signed certificate and private key.
-// See certs/README.md for how these were generated.
 const keyPath = path.join(__dirname, '..', 'certs', 'key.pem');
 const certPath = path.join(__dirname, '..', 'certs', 'cert.pem');
 
-// Fail loudly if the cert/key are missing, instead of silently falling
-// back to plain HTTP. HustleHub+ handles credentials and financial data,
-// so the server should never start without encryption.
 if (!fs.existsSync(keyPath) || !fs.existsSync(certPath)) {
-  console.error('FATAL: TLS certificate/key not found in /certs. See certs/README.md to generate one.');
+  console.error('FATAL: TLS certificate/key not found in /certs.');
   process.exit(1);
 }
 
@@ -84,6 +80,9 @@ const httpsOptions = {
   cert: fs.readFileSync(certPath),
 };
 
-https.createServer(httpsOptions, app).listen(PORT, () => {
-  console.log(`Server is running securely on https://localhost:${PORT}`);
+// Connect to MongoDB first, then start the server
+connectDB().then(() => {
+  https.createServer(httpsOptions, app).listen(PORT, () => {
+    console.log(`Server is running securely on https://localhost:${PORT}`);
+  });
 });

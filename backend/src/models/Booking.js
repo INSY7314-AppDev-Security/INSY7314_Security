@@ -1,1 +1,11 @@
-// Booking model – to be completed in Part 2
+const mongoose = require('mongoose');
+
+const bookingSchema = new mongoose.Schema({
+  gig: { type: mongoose.Schema.Types.ObjectId, ref: 'Gig', required: true },
+  client: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  freelancer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  price: { type: Number, required: true },
+  status: { type: String, default: 'confirmed' }
+}, { timestamps: true });
+
+module.exports = mongoose.model('Booking', bookingSchema);
