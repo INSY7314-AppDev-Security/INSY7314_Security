@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ['client', 'freelancer', 'admin'], default: 'client' },
     // Account lockout (never returned unless a query asks for them with select)
     failedLoginAttempts: { type: Number, default: 0, select: false },
-    lockUntil: { type: Date, default: null, select: false }
+    lockUntil: { type: Date, default: null, select: false },
+    // Session revocation: raising this number invalidates every token issued before
+    tokenVersion: { type: Number, default: 0, select: false }
   },
   { timestamps: true }
 );
