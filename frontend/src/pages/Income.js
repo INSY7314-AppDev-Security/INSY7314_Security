@@ -4,6 +4,7 @@ import axios from 'axios';
 function Income() {
   const [data, setData] = useState(null);
   const [message, setMessage] = useState('Loading income...');
+  const [loading, setLoading] = useState(true);
 
   const calculateTax = (income) => {
     if (income <= 0) return 0;
@@ -22,6 +23,7 @@ function Income() {
         const token = localStorage.getItem('token');
         if (!token) {
           setMessage('Please log in as a freelancer to see your income.');
+          setLoading(false);
           return;
         }
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/income`, {
@@ -31,6 +33,8 @@ function Income() {
         setMessage('');
       } catch (err) {
         setMessage(err.response?.data?.message || 'Could not load income.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchIncome();
@@ -56,8 +60,9 @@ function Income() {
       <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '15px' }}>
         Your earnings and estimated tax based on simplified South African progressive rates.
       </p>
-      {message && <p style={{ color: '#64748b' }}>{message}</p>}
-      {data && (
+      {loading && <p style={{ color: '#64748b' }}>Loading income...</p>}
+      {!loading && message && <p style={{ color: '#64748b' }}>{message}</p>}
+      {!loading && data && (
         <div>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '28px' }}>
             <div style={cardStyle}>
@@ -84,6 +89,9 @@ function Income() {
                 </div>
               ))}
             </div>
+          )}
+          {(!data.earningsPerGig || data.earningsPerGig.length === 0) && (
+            <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No earnings yet. Create a gig and get booked to see income here.</p>
           )}
         </div>
       )}

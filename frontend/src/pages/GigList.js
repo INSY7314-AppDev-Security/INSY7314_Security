@@ -4,6 +4,7 @@ import axios from 'axios';
 function GigList() {
   const [gigs, setGigs] = useState([]);
   const [message, setMessage] = useState('Loading gigs...');
+  const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
     const fetchGigs = async () => {
@@ -20,6 +21,12 @@ function GigList() {
     fetchGigs();
   }, []);
 
+  const copyId = (id) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1500);
+  };
+
   return (
     <div>
       <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#1e293b' }}>Available Gigs</h2>
@@ -27,6 +34,9 @@ function GigList() {
         Browse available services. To book one, copy its ID and go to the Book a Gig page (you must be logged in as a client).
       </p>
       {message && <p style={{ color: '#64748b' }}>{message}</p>}
+      {gigs.length === 0 && !message && (
+        <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No gigs available yet. Check back later or create one as a freelancer.</p>
+      )}
       <div style={{ display: 'grid', gap: '16px' }}>
         {gigs.map((gig) => (
           <div key={gig._id} style={{
@@ -43,9 +53,23 @@ function GigList() {
                 <span style={{ marginLeft: '12px', color: '#64748b', fontSize: '14px' }}>{gig.category}</span>
               </div>
             </div>
-            <p style={{ margin: '12px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>
-              Gig ID: <strong style={{ color: '#64748b' }}>{gig._id}</strong>
-            </p>
+            <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '13px', color: '#94a3b8' }}>Gig ID: <strong style={{ color: '#64748b' }}>{gig._id}</strong></span>
+              <button
+                onClick={() => copyId(gig._id)}
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '12px',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  backgroundColor: copiedId === gig._id ? '#dcfce7' : 'white',
+                  color: copiedId === gig._id ? '#166534' : '#475569',
+                  cursor: 'pointer'
+                }}
+              >
+                {copiedId === gig._id ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import GigList from './pages/GigList';
@@ -9,8 +9,21 @@ import Transactions from './pages/Transactions';
 
 function App() {
   const [page, setPage] = useState('login');
+  const [role, setRole] = useState(null);
 
-  const navButton = (id, label) => ({
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setRole(payload.role);
+      } catch (e) {
+        setRole(null);
+      }
+    }
+  }, [page]);
+
+  const navButton = (id) => ({
     margin: '0 6px 6px 0',
     padding: '8px 16px',
     border: 'none',
@@ -25,6 +38,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    setRole(null);
     setPage('login');
     window.location.reload();
   };
@@ -37,21 +51,21 @@ function App() {
           <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '15px' }}>Secure freelance marketplace</p>
           {localStorage.getItem('token') && (
             <p style={{ margin: '12px 0 0 0', color: '#2E75B6', fontSize: '14px', fontWeight: 500 }}>
-              You are logged in
+              Logged in as {role ? role.charAt(0).toUpperCase() + role.slice(1) : 'user'}
             </p>
           )}
         </header>
 
         <nav style={{ marginBottom: '28px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-          <button style={navButton('login', 'Login')} onClick={() => setPage('login')}>Login</button>
-          <button style={navButton('register', 'Register')} onClick={() => setPage('register')}>Register</button>
-          <button style={navButton('gigs', 'Gigs')} onClick={() => setPage('gigs')}>Browse Gigs</button>
-          <button style={navButton('create', 'Create')} onClick={() => setPage('create')}>Create Gig</button>
-          <button style={navButton('book', 'Book')} onClick={() => setPage('book')}>Book a Gig</button>
+          <button style={navButton('login')} onClick={() => setPage('login')}>Login</button>
+          <button style={navButton('register')} onClick={() => setPage('register')}>Register</button>
+          <button style={navButton('gigs')} onClick={() => setPage('gigs')}>Browse Gigs</button>
+          <button style={navButton('create')} onClick={() => setPage('create')}>Create Gig</button>
+          <button style={navButton('book')} onClick={() => setPage('book')}>Book a Gig</button>
           {localStorage.getItem('token') && (
             <>
-              <button style={navButton('income', 'Income')} onClick={() => setPage('income')}>Income</button>
-              <button style={navButton('transactions', 'Transactions')} onClick={() => setPage('transactions')}>Transactions</button>
+              <button style={navButton('income')} onClick={() => setPage('income')}>Income</button>
+              <button style={navButton('transactions')} onClick={() => setPage('transactions')}>Transactions</button>
               <button
                 style={{ ...navButton('logout'), backgroundColor: '#fee2e2', color: '#b91c1c' }}
                 onClick={handleLogout}
