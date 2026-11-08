@@ -26,7 +26,7 @@ function CreateGig() {
     }
 
     try {
-      await axios.post('https://localhost:5000/api/gigs', form, {
+      await axios.post('${process.env.REACT_APP_API_URL}/api/gigs', form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       showToast('Gig created. Clients can now see it and book it.', 'success');

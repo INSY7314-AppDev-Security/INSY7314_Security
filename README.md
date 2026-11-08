@@ -233,7 +233,7 @@ From the `backend/` directory:
 npm start
 ```
 
-The Part 1 development server used `https://localhost:5000`. Confirm the actual URL and port configured in the current implementation.
+The Part 1 development server used `${process.env.REACT_APP_API_URL}`. Confirm the actual URL and port configured in the current implementation.
 
 ### 5.8 Start the Frontend
 

@@ -22,7 +22,7 @@ function Booking() {
     }
 
     try {
-      await axios.post('https://localhost:5000/api/bookings',
+      await axios.post('${process.env.REACT_APP_API_URL}/api/bookings',
         { gigId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
