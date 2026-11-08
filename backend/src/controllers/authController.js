@@ -61,7 +61,7 @@ async function login(req, res, next) {
     const { email, password } = req.body;
 
     // 1. Find the user by email (+ brings back fields that are hidden by default)
-    const user = await User.findOne({ email }).select('+password +failedLoginAttempts +lockUntil');
+    const user = await User.findOne({ email }).select('+password +failedLoginAttempts +lockUntil +tokenVersion');
 
     // Unknown email: do a fake password check so the response takes as long as
     // a real failure, then give the same generic answer.
@@ -149,9 +149,28 @@ async function login(req, res, next) {
   }
 }
 
+// POST /api/auth/logout  (any logged-in user)
+// Raises the user's tokenVersion, which cancels EVERY token issued so far
+// (this device and any others). Deleting the token in the browser alone would
+// leave a stolen copy working until it expires.
+async function logout(req, res, next) {
+  try {
+    await User.updateOne({ _id: req.user.id }, { $inc: { tokenVersion: 1 } });
+    logSecurityEvent('LOGOUT', { userId: String(req.user.id), ip: req.ip });
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out. All previous tokens have been invalidated.'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
-  login
+  login,
+  logout
 };
 
 //Plain English Breakdown for clarity
