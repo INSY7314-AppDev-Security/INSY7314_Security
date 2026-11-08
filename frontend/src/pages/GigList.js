@@ -8,7 +8,9 @@ function GigList() {
   useEffect(() => {
     const fetchGigs = async () => {
       try {
-        const res = await axios.get('${process.env.REACT_APP_API_URL}/api/gigs');
+        const token = localStorage.getItem('token');
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+        const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/gigs`, config);
         setGigs(res.data.gigs || res.data);
         setMessage('');
       } catch (err) {

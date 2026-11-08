@@ -20,7 +20,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('${process.env.REACT_APP_API_URL}/api/auth/register', form);
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/register`, form);
       showToast('Account created. You can now log in.', 'success');
       setForm({ name: '', email: '', password: '', role: 'client' });
     } catch (err) {

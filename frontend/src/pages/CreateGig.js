@@ -19,20 +19,15 @@ function CreateGig() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showToast('Please log in first. Only freelancers can create gigs.', 'error');
-      return;
-    }
-
     try {
-      await axios.post('${process.env.REACT_APP_API_URL}/api/gigs', form, {
+      const token = localStorage.getItem('token');
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/gigs`, form, {
         headers: { Authorization: `Bearer ${token}` }
       });
       showToast('Gig created. Clients can now see it and book it.', 'success');
       setForm({ title: '', description: '', price: '', category: '' });
     } catch (err) {
-      showToast(err.response?.data?.message || 'Could not create gig. Make sure you are logged in as a freelancer.', 'error');
+      showToast(err.response?.data?.message || 'Could not create gig.', 'error');
     }
   };
 
@@ -50,31 +45,29 @@ function CreateGig() {
     <div>
       <h2>Create a Gig</h2>
       <p style={{ color: '#555', fontSize: '14px' }}>
-        Only freelancers can create gigs. Give it a clear title, a short description, a price, and a category.
+        You must be logged in as a freelancer.
       </p>
       <form onSubmit={handleSubmit}>
-        <input style={inputStyle} name="title" placeholder="Gig title (e.g. Website Design)" value={form.title} onChange={handleChange} />
-        <input style={inputStyle} name="description" placeholder="Short description of the service" value={form.description} onChange={handleChange} />
-        <input style={inputStyle} name="price" type="number" placeholder="Price in Rands" value={form.price} onChange={handleChange} />
-        <input style={inputStyle} name="category" placeholder="Category (e.g. Web Development)" value={form.category} onChange={handleChange} />
+        <input style={inputStyle} name="title" placeholder="Title" value={form.title} onChange={handleChange} />
+        <textarea style={inputStyle} name="description" placeholder="Description" value={form.description} onChange={handleChange} />
+        <input style={inputStyle} name="price" placeholder="Price (R)" value={form.price} onChange={handleChange} />
+        <input style={inputStyle} name="category" placeholder="Category" value={form.category} onChange={handleChange} />
         <button
           type="submit"
-          style={{ padding: '10px 18px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.2s' }}
+          style={{ padding: '10px 18px', backgroundColor: '#2E75B6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
           Create Gig
         </button>
       </form>
-
       {toast.show && (
         <div style={{
           marginTop: '16px',
           padding: '12px',
           borderRadius: '6px',
           backgroundColor: toast.type === 'success' ? '#d4edda' : '#f8d7da',
-          color: toast.type === 'success' ? '#155724' : '#721c24',
-          border: `1px solid ${toast.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+          color: toast.type === 'success' ? '#155724' : '#721c24'
         }}>
           {toast.message}
         </div>
