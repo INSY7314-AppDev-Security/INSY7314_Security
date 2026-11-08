@@ -23,7 +23,7 @@ const {
 router.use(protect);
 
 // Browse gigs: clients (available only) and admins (all)
-router.get('/', authorizeRoles('client', 'admin'), browseGigRules, handleValidationErrors, getGigs);
+router.get('/', authorizeRoles('client', 'freelancer', 'admin'), browseGigRules, handleValidationErrors, getGigs);
 
 // A freelancer's own gigs. Must be registered BEFORE '/:id'
 router.get('/mine', authorizeRoles('freelancer'), getMyGigs);
