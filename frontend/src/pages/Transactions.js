@@ -27,27 +27,37 @@ function Transactions() {
 
   return (
     <div>
-      <h2>Your Transactions</h2>
-      <p style={{ color: '#555', fontSize: '14px' }}>
+      <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#1e293b' }}>Your Transactions</h2>
+      <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '15px' }}>
         This page shows the bookings and payments linked to your account.
       </p>
-      {message && <p>{message}</p>}
-      {transactions.length === 0 && !message && <p>No transactions yet.</p>}
-      {transactions.map((tx) => (
-        <div key={tx._id} style={{
-          border: '1px solid #ddd',
-          borderRadius: '6px',
-          padding: '16px',
-          margin: '12px 0',
-          backgroundColor: 'white'
-        }}>
-          <p style={{ margin: '4px 0', fontWeight: 'bold' }}>Amount: R{tx.amount || tx.price}</p>
-          <p style={{ margin: '4px 0' }}>Status: {tx.status || 'Completed'}</p>
-          <p style={{ margin: '4px 0', fontSize: '13px', color: '#666' }}>
-            Date: {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'Recent'}
-          </p>
-        </div>
-      ))}
+      {message && <p style={{ color: '#64748b' }}>{message}</p>}
+      {transactions.length === 0 && !message && (
+        <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No transactions yet.</p>
+      )}
+      <div style={{ display: 'grid', gap: '12px' }}>
+        {transactions.map((tx) => (
+          <div key={tx._id} style={{
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            padding: '16px 20px',
+            backgroundColor: '#f8fafc',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <div>
+              <p style={{ margin: 0, fontWeight: 600, color: '#1e293b' }}>R{tx.amount || tx.price}</p>
+              <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b' }}>
+                {tx.status || 'Completed'}
+              </p>
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', color: '#94a3b8' }}>
+              {tx.createdAt ? new Date(tx.createdAt).toLocaleDateString() : 'Recent'}
+            </p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
