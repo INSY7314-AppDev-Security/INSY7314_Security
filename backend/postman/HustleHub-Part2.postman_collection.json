@@ -7,7 +7,7 @@
   "variable": [
     {
       "key": "host",
-      "value": "https://localhost:5000"
+      "value": "${process.env.REACT_APP_API_URL}"
     },
     {
       "key": "baseUrl",

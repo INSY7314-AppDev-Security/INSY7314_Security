@@ -8,7 +8,7 @@ function GigList() {
   useEffect(() => {
     const fetchGigs = async () => {
       try {
-        const res = await axios.get('https://localhost:5000/api/gigs');
+        const res = await axios.get('${process.env.REACT_APP_API_URL}/api/gigs');
         setGigs(res.data.gigs || res.data);
         setMessage('');
       } catch (err) {
