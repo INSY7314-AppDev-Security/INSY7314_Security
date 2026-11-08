@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import GigList from './pages/GigList';
@@ -36,7 +37,19 @@ function App() {
     transition: 'all 0.15s ease'
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Tell the server first, so it cancels every token for this account.
+    // Even if this request fails, the token is still removed from the browser.
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/logout`, null, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      } catch (e) {
+        // ignore: the token may already be invalid or the server unreachable
+      }
+    }
     localStorage.removeItem('token');
     setRole(null);
     setPage('login');
