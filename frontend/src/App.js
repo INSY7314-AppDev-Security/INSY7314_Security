@@ -5,6 +5,7 @@ import GigList from './pages/GigList';
 import CreateGig from './pages/CreateGig';
 import Booking from './pages/Booking';
 import Income from './pages/Income';
+import Transactions from './pages/Transactions';
 
 function App() {
   const [page, setPage] = useState('login');
@@ -51,6 +52,9 @@ function App() {
           <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('income')}>Income</button>
         )}
         {localStorage.getItem('token') && (
+          <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('transactions')}>Transactions</button>
+        )}
+        {localStorage.getItem('token') && (
           <button
             style={{ ...buttonStyle, backgroundColor: '#c0392b' }}
             onMouseEnter={(e) => e.target.style.backgroundColor = '#922b21'}
@@ -69,6 +73,7 @@ function App() {
         {page === 'create' && <CreateGig />}
         {page === 'book' && <Booking />}
         {page === 'income' && <Income />}
+        {page === 'transactions' && <Transactions />}
       </div>
 
       <footer style={{
