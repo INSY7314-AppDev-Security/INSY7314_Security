@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Register from './pages/Register';
 import Login from './pages/Login';
 import GigList from './pages/GigList';
@@ -9,84 +9,88 @@ import Transactions from './pages/Transactions';
 
 function App() {
   const [page, setPage] = useState('login');
+  const [role, setRole] = useState(null);
 
-  const buttonStyle = {
-    margin: '0 8px 8px 0',
-    padding: '10px 18px',
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setRole(payload.role);
+      } catch (e) {
+        setRole(null);
+      }
+    }
+  }, [page]);
+
+  const navButton = (id) => ({
+    margin: '0 6px 6px 0',
+    padding: '8px 16px',
     border: 'none',
-    borderRadius: '6px',
-    backgroundColor: '#2E75B6',
-    color: 'white',
+    borderRadius: '20px',
+    backgroundColor: page === id ? '#1F4E79' : '#e8eef4',
+    color: page === id ? 'white' : '#1F4E79',
     cursor: 'pointer',
     fontSize: '14px',
-    transition: 'background-color 0.2s'
-  };
+    fontWeight: 500,
+    transition: 'all 0.15s ease'
+  });
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    setRole(null);
     setPage('login');
     window.location.reload();
   };
 
-  const handleMouseEnter = (e) => { e.target.style.backgroundColor = '#1F4E79'; };
-  const handleMouseLeave = (e) => { e.target.style.backgroundColor = '#2E75B6'; };
-
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1 style={{ color: '#1F4E79' }}>HustleHub+</h1>
-      <p style={{ color: '#666' }}>Secure freelance marketplace</p>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f4f7fb', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '32px 20px' }}>
+        <header style={{ marginBottom: '32px' }}>
+          <h1 style={{ margin: 0, fontSize: '32px', color: '#1F4E79', fontWeight: 700 }}>HustleHub+</h1>
+          <p style={{ margin: '4px 0 0 0', color: '#6b7280', fontSize: '15px' }}>Secure freelance marketplace</p>
+          {localStorage.getItem('token') && (
+            <p style={{ margin: '12px 0 0 0', color: '#2E75B6', fontSize: '14px', fontWeight: 500 }}>
+              Logged in as {role ? role.charAt(0).toUpperCase() + role.slice(1) : 'user'}
+            </p>
+          )}
+        </header>
 
-      {localStorage.getItem('token') && (
-        <p style={{ color: '#2E75B6', fontSize: '14px' }}>
-          You are logged in. You can browse gigs, create a gig, or book one.
-        </p>
-      )}
+        <nav style={{ marginBottom: '28px', display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+          <button style={navButton('login')} onClick={() => setPage('login')}>Login</button>
+          <button style={navButton('register')} onClick={() => setPage('register')}>Register</button>
+          <button style={navButton('gigs')} onClick={() => setPage('gigs')}>Browse Gigs</button>
+          <button style={navButton('create')} onClick={() => setPage('create')}>Create Gig</button>
+          <button style={navButton('book')} onClick={() => setPage('book')}>Book a Gig</button>
+          {localStorage.getItem('token') && (
+            <>
+              <button style={navButton('income')} onClick={() => setPage('income')}>Income</button>
+              <button style={navButton('transactions')} onClick={() => setPage('transactions')}>Transactions</button>
+              <button
+                style={{ ...navButton('logout'), backgroundColor: '#fee2e2', color: '#b91c1c' }}
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            </>
+          )}
+        </nav>
 
-      <nav style={{ marginBottom: '24px' }}>
-        <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('login')}>Login</button>
-        <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('register')}>Register</button>
-        <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('gigs')}>Browse Gigs</button>
-        <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('create')}>Create Gig</button>
-        <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('book')}>Book a Gig</button>
-        {localStorage.getItem('token') && (
-          <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('income')}>Income</button>
-        )}
-        {localStorage.getItem('token') && (
-          <button style={buttonStyle} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} onClick={() => setPage('transactions')}>Transactions</button>
-        )}
-        {localStorage.getItem('token') && (
-          <button
-            style={{ ...buttonStyle, backgroundColor: '#c0392b' }}
-            onMouseEnter={(e) => e.target.style.backgroundColor = '#922b21'}
-            onMouseLeave={(e) => e.target.style.backgroundColor = '#c0392b'}
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        )}
-      </nav>
+        <main style={{ backgroundColor: 'white', borderRadius: '16px', padding: '28px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' }}>
+          {page === 'login' && <Login />}
+          {page === 'register' && <Register />}
+          {page === 'gigs' && <GigList />}
+          {page === 'create' && <CreateGig />}
+          {page === 'book' && <Booking />}
+          {page === 'income' && <Income />}
+          {page === 'transactions' && <Transactions />}
+        </main>
 
-      <div style={{ backgroundColor: '#f9f9f9', padding: '20px', borderRadius: '8px' }}>
-        {page === 'login' && <Login />}
-        {page === 'register' && <Register />}
-        {page === 'gigs' && <GigList />}
-        {page === 'create' && <CreateGig />}
-        {page === 'book' && <Booking />}
-        {page === 'income' && <Income />}
-        {page === 'transactions' && <Transactions />}
+        <footer style={{ marginTop: '48px', textAlign: 'center', color: '#9ca3af', fontSize: '13px' }}>
+          <strong style={{ color: '#6b7280' }}>HustleHub+</strong> — Built by Justin Fussell, Thomas Pheiffer, Isabelle Devlin & Matteo Nusca<br />
+          INSY7314 • Group POE • 2026
+        </footer>
       </div>
-
-      <footer style={{
-        marginTop: '40px',
-        padding: '16px',
-        textAlign: 'center',
-        borderTop: '1px solid #ddd',
-        color: '#666',
-        fontSize: '13px'
-      }}>
-        <strong>HustleHub+</strong> — Built by Justin Fussell, Thomas Pheiffer, Isabelle Devlin & Matteo Nusca<br />
-        INSY7314 • Group POE • 2026
-      </footer>
     </div>
   );
 }

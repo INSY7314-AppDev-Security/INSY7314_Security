@@ -4,8 +4,8 @@ import axios from 'axios';
 function Income() {
   const [data, setData] = useState(null);
   const [message, setMessage] = useState('Loading income...');
+  const [loading, setLoading] = useState(true);
 
-  // Simplified South African progressive tax (2026 brackets, rounded for clarity)
   const calculateTax = (income) => {
     if (income <= 0) return 0;
     if (income <= 237100) return income * 0.18;
@@ -23,6 +23,7 @@ function Income() {
         const token = localStorage.getItem('token');
         if (!token) {
           setMessage('Please log in as a freelancer to see your income.');
+          setLoading(false);
           return;
         }
         const res = await axios.get(`${process.env.REACT_APP_API_URL}/api/income`, {
@@ -32,6 +33,8 @@ function Income() {
         setMessage('');
       } catch (err) {
         setMessage(err.response?.data?.message || 'Could not load income.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchIncome();
@@ -41,39 +44,54 @@ function Income() {
   const estimatedTax = calculateTax(totalEarned);
   const afterTax = totalEarned - estimatedTax;
 
+  const cardStyle = {
+    flex: 1,
+    minWidth: '160px',
+    backgroundColor: '#f8fafc',
+    border: '1px solid #e2e8f0',
+    borderRadius: '12px',
+    padding: '20px',
+    textAlign: 'center'
+  };
+
   return (
     <div>
-      <h2>Income & Tax Dashboard</h2>
-      <p style={{ color: '#555', fontSize: '14px' }}>
+      <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#1e293b' }}>Income & Tax Dashboard</h2>
+      <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '15px' }}>
         Your earnings and estimated tax based on simplified South African progressive rates.
       </p>
-      {message && <p>{message}</p>}
-      {data && (
+      {loading && <p style={{ color: '#64748b' }}>Loading income...</p>}
+      {!loading && message && <p style={{ color: '#64748b' }}>{message}</p>}
+      {!loading && data && (
         <div>
-          <div style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '180px', backgroundColor: 'white', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <p style={{ margin: 0, color: '#666' }}>Total Earned</p>
-              <h3 style={{ margin: '8px 0 0 0', color: '#1F4E79' }}>R{totalEarned.toFixed(2)}</h3>
+          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '28px' }}>
+            <div style={cardStyle}>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>Total Earned</p>
+              <h3 style={{ margin: '8px 0 0 0', color: '#1F4E79', fontSize: '28px' }}>R{totalEarned.toFixed(2)}</h3>
             </div>
-            <div style={{ flex: 1, minWidth: '180px', backgroundColor: 'white', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <p style={{ margin: 0, color: '#666' }}>Estimated Tax</p>
-              <h3 style={{ margin: '8px 0 0 0', color: '#c0392b' }}>R{estimatedTax.toFixed(2)}</h3>
+            <div style={cardStyle}>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>Estimated Tax</p>
+              <h3 style={{ margin: '8px 0 0 0', color: '#dc2626', fontSize: '28px' }}>R{estimatedTax.toFixed(2)}</h3>
             </div>
-            <div style={{ flex: 1, minWidth: '180px', backgroundColor: 'white', padding: '16px', borderRadius: '8px', textAlign: 'center' }}>
-              <p style={{ margin: 0, color: '#666' }}>After Tax</p>
-              <h3 style={{ margin: '8px 0 0 0', color: '#27ae60' }}>R{afterTax.toFixed(2)}</h3>
+            <div style={cardStyle}>
+              <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>After Tax</p>
+              <h3 style={{ margin: '8px 0 0 0', color: '#16a34a', fontSize: '28px' }}>R{afterTax.toFixed(2)}</h3>
             </div>
           </div>
 
           {data.earningsPerGig && data.earningsPerGig.length > 0 && (
-            <div style={{ marginTop: '24px', backgroundColor: 'white', padding: '16px', borderRadius: '8px' }}>
-              <h4 style={{ marginTop: 0 }}>Earnings per gig</h4>
+            <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
+              <h4 style={{ margin: '0 0 12px 0', color: '#1e293b' }}>Earnings per gig</h4>
               {data.earningsPerGig.map((item, index) => (
-                <p key={index} style={{ margin: '6px 0' }}>
-                  {item.gigTitle || 'Gig'}: R{item.amount}
-                </p>
+                <div key={index} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: index < data.earningsPerGig.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                  <span>{item.gigTitle || 'Gig'}</span>
+                  <strong>R{item.amount}</strong>
+                </div>
               ))}
             </div>
+          )}
+          {(!data.earningsPerGig || data.earningsPerGig.length === 0) && (
+            <p style={{ color: '#94a3b8', fontStyle: 'italic' }}>No earnings yet. Create a gig and get booked to see income here.</p>
           )}
         </div>
       )}
