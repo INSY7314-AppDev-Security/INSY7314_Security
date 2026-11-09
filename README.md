@@ -460,7 +460,6 @@ This is an estimation only and does not include actual SARS rebates or official 
 ### Environment Variable
 Create a file called `.env` in the `frontend` folder with:
 
-
 ## 11. Testing Evidence
 
 The repository includes supporting evidence for the application's authentication and security testing.
@@ -501,6 +500,8 @@ The demonstration video provides additional evidence of the full-stack applicati
 
 ---
 
+
+
 ## 12. Demonstration Video
 
 The demonstration video provides a practical walkthrough of HustleHub+, including the full-stack application and frontend testing.
@@ -540,6 +541,131 @@ Although HustleHub+ supports the core freelance marketplace workflow, several en
 These are potential improvements rather than claims about existing functionality.
 
 ---
+
+## Additional Security Features (Part 3)
+
+Beyond the baseline controls from Parts 1 and 2 (bcrypt hashing, JWT, role-based access control, input validation, rate limiting, Helmet/CSP, HTTPS and ownership checks), Part 3 adds two further features. Each closes a specific gap found while reviewing the Part 2 code.
+
+| # | Feature | Gap in Part 2 | Main files |
+|---|---|---|---|
+| A | Account lockout and timing-safe login | Login was limited per IP address only, and unknown emails were answered faster than wrong passwords | `backend/src/utils/lockout.js`, `backend/src/controllers/authController.js`, `backend/src/utils/hashPassword.js`, `backend/src/models/User.js` |
+| B | Server-side session revocation (real logout, live role check, short-lived tokens) | A stolen token stayed valid for 24 hours, logout only deleted it in the browser, and the role inside the token was trusted even after a user was deleted or changed | `backend/src/middleware/authMiddleware.js`, `backend/src/utils/sessionCheck.js`, `backend/src/utils/generateToken.js`, `POST /api/auth/logout` |
+
+### Feature A: Account lockout and timing-safe login
+
+**Threats addressed:** brute-force and credential-stuffing attacks, and user enumeration (working out which emails are registered).
+
+**Why the existing rate limit was not enough:** the login limiter counts requests per IP address. An attacker who spreads guesses over many IP addresses is never limited, yet can try unlimited passwords against one victim. Lockout counts failures per account, whichever IP they come from, so it protects the victim directly.
+
+**How it works**
+
+1. Every wrong password increases `failedLoginAttempts` on that user. The increase uses MongoDB `$inc`, which is atomic, so simultaneous requests cannot undercount.
+2. When the count reaches `LOCKOUT_MAX_ATTEMPTS` (default 5) the account is locked until `lockUntil` (default 15 minutes ahead).
+3. While locked, the API answers `423 Locked` without checking the password, so even the correct password cannot be used to confirm a guess during the lock.
+4. When the lock runs out, the counter is reset and the user gets a fresh set of attempts. A successful login also resets the counter.
+5. **Timing-safe login:** if the email does not exist, the server still runs a bcrypt comparison against a throwaway hash. A wrong password and an unknown email therefore take about the same time and return the same `401 Invalid email or password`, so neither response time nor message reveals which emails are registered.
+6. Every step writes a security event (see [Security events logged](#security-events-logged)). Events never contain passwords or tokens.
+
+**Configuration (`backend/.env`)**
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `LOCKOUT_MAX_ATTEMPTS` | 5 | Failed logins before the account locks |
+| `LOCKOUT_MINUTES` | 15 | Length of the lock |
+
+**Trade-off (documented decision):** the `423` response tells someone that the email belongs to a real account. We accepted this because genuine users need to know why they cannot log in, and the per-IP limiter already limits how quickly anyone can probe emails. A lock can also be triggered deliberately against a known email, which only delays that user for the lock period; no data is exposed.
+
+### Feature B: Server-side session revocation
+
+**Threats addressed:** stolen or leaked tokens (for example through XSS, because the token is kept in `localStorage`), tokens that outlive a logout, and stale roles.
+
+**How it works**
+
+1. Each user has a `tokenVersion` number. Every JWT carries that number (`tv`).
+2. The `protect` middleware verifies the signature and expiry, then loads the user from the database. It rejects the request with `401` if the user no longer exists or if the token's `tv` does not match the stored `tokenVersion`.
+3. `POST /api/auth/logout` raises `tokenVersion`. That cancels every token issued so far, on this device and any other, immediately.
+4. The role used for authorisation (`req.user.role`) comes from the database, not from the token, so a changed or removed account loses access straight away instead of when the token expires.
+5. Tokens are short-lived: 2 hours by default (`JWT_EXPIRES_IN`), down from 24 hours.
+6. Every rejection returns the same `401 Not authorized, token failed` message, so the API does not explain why a token was refused. The reason is written to the security log (`TOKEN_REJECTED` with `token_revoked`, `user_not_found` or `invalid_or_expired`).
+7. The React logout button calls the endpoint before it removes the token from the browser.
+
+**Configuration (`backend/.env`):** `JWT_EXPIRES_IN` (default `2h`).
+
+**Cost and limits:** every protected request now makes one small database read. Tokens issued before this feature carry no `tv` and are treated as version 0, so they keep working until their normal expiry. The token is still stored in `localStorage`; revocation and the shorter lifetime limit the damage of a stolen token but do not stop it being stolen. Moving to an `httpOnly` cookie would be the next step.
+
+### Threats and the controls that address them
+
+| Threat | Control |
+|---|---|
+| Password guessing against one account from many IP addresses | Account lockout (A) |
+| Finding registered emails through response time or error text | Dummy bcrypt comparison and one generic message (A) |
+| Using a correct password found mid-attack during a lock | Password is not checked while locked (A) |
+| Stolen token used after the user logs out | Token version check and `POST /api/auth/logout` (B) |
+| Token that keeps working for a deleted user | Database lookup in `protect` (B) |
+| Old role kept after an account change | Role read from the database (B) |
+| Long window for a leaked token | 2-hour default expiry (B) |
+| Attacker learns why a token failed | Identical `401` message, detail only in the log (B) |
+
+### Security events logged
+
+All events go through `backend/src/utils/securityEvents.js` as one JSON line each, so they can be searched and monitored.
+
+| Event | When | Why it matters |
+|---|---|---|
+| `LOGIN_SUCCESS` | A valid login | Audit trail of who signed in and from where |
+| `LOGIN_FAILED` | Wrong password or unknown email (with the reason) | Shows guessing attempts and which accounts are targeted |
+| `ACCOUNT_LOCKED` | The failure limit is reached | A strong signal of a brute-force attack |
+| `LOGIN_BLOCKED_LOCKED` | A login attempt on a locked account | Shows an attack continuing after the lock |
+| `LOGOUT` | A user logs out and all tokens are cancelled | Audit trail for session changes |
+| `TOKEN_REJECTED` | A token fails (revoked, deleted user, or invalid/expired) | Shows stolen or replayed tokens being used |
+
+### Testing the features
+
+**Unit tests (no database needed).** From `backend/`:
+
+```bash
+npm install
+npm test
+```
+
+22 Jest tests cover the lockout helpers, the token version check, token creation and the `protect` middleware (valid, revoked, deleted-user, bad-signature and database-failure cases).
+
+**API tests with Newman.** These need the server running with a low lockout limit and a raised IP limit, so the lockout can be reached within one run. Set these in `backend/.env` for testing only, then restart the server:
+
+```text
+LOCKOUT_MAX_ATTEMPTS=3
+LOGIN_RATE_LIMIT_MAX=100
+```
+
+Then, in a second terminal:
+
+```bash
+npm run test:api:part3
+```
+
+The collection `backend/postman/HustleHub-Part3-Security.postman_collection.json` has 18 requests and 44 assertions. It tests three failed logins followed by a locked correct password (`423`), a generic response for unknown emails, logout, rejection of the old token and of a second device's token, and a fresh login working afterwards. Run it separately from the Part 2 collection, which depends on the default rate limit. Restore `LOCKOUT_MAX_ATTEMPTS=5` and remove `LOGIN_RATE_LIMIT_MAX` after testing.
+
+### Evidence
+
+**Newman: all 18 requests and 44 assertions pass**
+
+![Newman summary: 18 requests, 44 assertions, 0 failed](docs/screenshots/p3-matteo-01-newman-summary.png)
+
+**Lockout: three wrong passwords return 401, then the correct password is refused with 423**
+
+![Lockout demo showing 401, 401, 401 then 423 Locked](docs/screenshots/p3-matteo-03-lockout-423.png)
+
+**Security log: failed logins, account lock, logout and revoked tokens**
+
+![Server log showing LOGIN_FAILED, ACCOUNT_LOCKED, LOGIN_BLOCKED_LOCKED, LOGOUT and TOKEN_REJECTED events](docs/screenshots/p3-matteo-02-server-log.png)
+
+**Newman detail: lockout tests (L.1 to L.6)**
+
+![Newman lockout tests](docs/screenshots/p3-matteo-04-newman-lockout-tests.png)
+
+**Newman detail: unknown email and session revocation tests (L.7 to S.7)**
+
+![Newman session revocation tests](docs/screenshots/p3-matteo-05-newman-session-tests.png)
 
 ## 14. Repository Information
 
