@@ -9,6 +9,8 @@ const {
 } = require('../utils/lockout');
 const { logSecurityEvent } = require('../utils/securityEvents');
 const generateToken = require('../utils/generateToken');
+const logger = require('../utils/logger');
+const { maskEmail } = require('../utils/logger');
 
 async function register(req, res, next) {
   try {
@@ -17,6 +19,7 @@ async function register(req, res, next) {
     // 1. Check if the email is already registered
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      logger.warn('REGISTER_DUPLICATE_EMAIL', { email: maskEmail(email), ip: req.ip });
       return res.status(409).json({
         success: false,
         message: 'Email already registered'
@@ -32,6 +35,8 @@ async function register(req, res, next) {
       password: hashedPassword,
       role: role || 'client'    // default role is client
     });
+
+    logger.info('REGISTER_SUCCESS', { userId: String(newUser._id), role: newUser.role, ip: req.ip });
 
     // 4. Send success response (never send the password back)
     res.status(201).json({
@@ -64,10 +69,11 @@ async function login(req, res, next) {
     const user = await User.findOne({ email }).select('+password +failedLoginAttempts +lockUntil +tokenVersion');
 
     // Unknown email: do a fake password check so the response takes as long as
-    // a real failure, then give the same generic answer.
+    // a real failure, then give the same generic answer and log the event.
     if (!user) {
       await comparePassword(password, DUMMY_HASH);
       logSecurityEvent('LOGIN_FAILED', { email, ip: req.ip, reason: 'unknown_email' });
+      logger.warn('LOGIN_FAILED', { reason: 'unknown_email', email: maskEmail(email), ip: req.ip });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -119,6 +125,8 @@ async function login(req, res, next) {
         });
       }
 
+      logger.warn('LOGIN_FAILED', { reason: 'wrong_password', userId: String(user._id), ip: req.ip });
+
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -132,6 +140,8 @@ async function login(req, res, next) {
 
     const token = generateToken(user);
     logSecurityEvent('LOGIN_SUCCESS', { userId: String(user._id), email, ip: req.ip });
+
+    logger.info('LOGIN_SUCCESS', { userId: String(user._id), role: user.role, ip: req.ip });
 
     res.status(200).json({
       success: true,
@@ -172,22 +182,3 @@ module.exports = {
   login,
   logout
 };
-
-//Plain English Breakdown for clarity
-/*
-Register function:
-
-Takes the name, email, password and role from the request.
-Checks MongoDB to see if that email is already used. If yes, returns error 409.
-Hashes the password using the tool we created earlier.
-Saves the new user in MongoDB.
-Sends back a success message without the password.
-
-Login function:
-
-Takes email and password.
-Looks for the user in MongoDB.
-Compares the typed password with the stored hashed password.
-If everything is correct, creates a JWT that contains the user's id and role.
-Sends the token back to the user.
-*/

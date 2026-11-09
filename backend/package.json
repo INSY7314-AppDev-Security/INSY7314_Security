@@ -9,7 +9,9 @@
     "seed:admin": "node src/seed/createAdmin.js",
     "test:api": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure",
     "test:api:report": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure -r cli,htmlextra --reporter-htmlextra-export ../docs/newman/newman-report.html",
+    "test:checks": "node --test \"checks/*.check.js\"",
     "test": "jest --runInBand",
+    "test:api:security": "newman run postman/HustleHub-Part3-Security.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure",
     "test:api:part3": "newman run postman/HustleHub-Part3-Security.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure --env-var host=https://localhost:5000"
   },
   "keywords": [],
@@ -24,7 +26,10 @@
     "express-validator": "^7.3.2",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.11.1"
+    "mongoose": "^9.11.1",
+    "selfsigned": "^5.5.0",
+    "winston": "^3.19.0",
+    "winston-loki": "^6.1.7"
   },
   "devDependencies": {
     "jest": "^30.5.2",

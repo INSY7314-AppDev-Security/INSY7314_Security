@@ -1,6 +1,7 @@
 const Gig = require('../models/Gig');
 const Booking = require('../models/Booking');
 const Transaction = require('../models/Transaction');
+const logger = require('../utils/logger');
 
 function bookingNotFound(res) {
   // Same 404 whether the booking does not exist or belongs to someone else,
@@ -52,8 +53,24 @@ async function createBooking(req, res, next) {
       });
     } catch (txError) {
       await Booking.deleteOne({ _id: booking._id });
+      logger.error('TRANSACTION_FAILED', { bookingId: String(booking._id), error: txError.message });
       throw txError;
     }
+
+    logger.info('BOOKING_CREATED', {
+      bookingId: String(booking._id),
+      gigId: String(booking.gig),
+      clientId: String(booking.client),
+      freelancerId: String(booking.freelancer),
+      amount: booking.amount
+    });
+    logger.info('TRANSACTION_CREATED', {
+      transactionId: String(transaction._id),
+      reference: transaction.reference,
+      bookingId: String(booking._id),
+      amount: transaction.amount,
+      currency: transaction.currency
+    });
 
     res.status(201).json({
       success: true,
