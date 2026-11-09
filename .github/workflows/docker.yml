@@ -1,0 +1,76 @@
+# Builds both containers, starts the whole stack with Docker Compose and tests it.
+# This runs on every push to main and on every pull request.
+# If any step fails, the run fails and the pipeline turns red.
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker:
+    name: Build and run the full stack
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # These values only exist inside this pipeline run.
+      # Real secrets must be stored in the repository secrets, never in this file.
+      JWT_SECRET: ci-only-secret-0123456789abcdef0123456789abcdef
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: CiAdminPassw0rd123
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Build the backend and frontend images
+        run: docker compose build
+
+      - name: Start the stack and wait until every container is healthy
+        run: docker compose up -d --wait --wait-timeout 180
+
+      - name: Show the running containers
+        run: docker compose ps
+
+      - name: Create the admin user inside the backend container
+        run: docker compose exec -T backend npm run seed:admin
+
+      - name: Smoke test the backend (HTTPS, login, admin-only route)
+        run: |
+          curl -ksf https://localhost:5000/ > /dev/null
+          TOKEN=$(curl -ks -X POST https://localhost:5000/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
+            | node -pe "JSON.parse(require('fs').readFileSync(0,'utf8')).token")
+          test -n "$TOKEN" && test "$TOKEN" != "undefined"
+          curl -ksf -H "Authorization: Bearer $TOKEN" https://localhost:5000/api/auth/admin-check
+
+      - name: Smoke test CORS (only the frontend origin is allowed)
+        run: |
+          curl -ksI -H "Origin: http://localhost:3000" https://localhost:5000/ | grep -i '^access-control-allow-origin: http://localhost:3000'
+          if curl -ksI -H "Origin: https://evil.example.com" https://localhost:5000/ | grep -qi '^access-control-allow-origin'; then
+            echo "An unknown origin was allowed"; exit 1
+          fi
+
+      - name: Smoke test the frontend (page and security headers)
+        run: |
+          curl -sf http://localhost:3000/ | grep -q 'id="root"'
+          curl -sI http://localhost:3000/ | grep -qi 'content-security-policy'
+
+      - name: Check that the login was logged inside the container
+        run: docker compose logs backend | grep -q 'LOGIN_SUCCESS'
+
+      - name: Show the container logs when something failed
+        if: failure()
+        run: docker compose logs --no-color
+
+      - name: Stop and remove the stack
+        if: always()
+        run: docker compose down -v
