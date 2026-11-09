@@ -20,7 +20,7 @@ USER node
 EXPOSE 5000
 
 # Healthy when the API answers over HTTPS (the certificate is self-signed, so it is not verified here)
-HEALTHCHECK --interval=15s --timeout=5s --start-period=20s --retries=5 \
+HEALTHCHECK --interval=10s --timeout=5s --retries=5 CMD curl -ksf https://localhost:5000/ || exit 1
   CMD node -e "require('https').get({host:'localhost',port:process.env.PORT||5000,path:'/',rejectUnauthorized:false},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
 # Make a fresh self-signed certificate, then start the server
