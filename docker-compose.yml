@@ -28,6 +28,7 @@ services:
     environment:
       PORT: 5000
       NODE_ENV: production
+      LOGIN_RATE_LIMIT_MAX: 100
       MONGO_URI: mongodb://mongo:27017/hustlehub
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in a .env file next to docker-compose.yml}
