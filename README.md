@@ -24,7 +24,7 @@ Part 2 introduces gig management, booking creation, transaction recording, and f
 8. [API Testing with Postman and Newman](#8-api-testing-with-postman-and-newman)
 9. [Frontend Testing](#9-frontend-testing)
 10. [Part 3 – Income & Tax Dashboard and Frontend Enhancements](#10-part-3--income--tax-dashboard-and-frontend-enhancements)
-11. [Part 3 – Additional Security Features](##-Additional-Security-Features (Part 3))
+11. [Part 3 – Additional Security Features](##-Additional-Security-Features)
 12. [Testing Evidence](#11-testing-evidence)
 13. [Demonstration Video](#12-demonstration-video)
 14. [Limitations and Future Enhancements](#13-limitations-and-future-enhancements)
@@ -543,7 +543,7 @@ These are potential improvements rather than claims about existing functionality
 
 ---
 
-## Additional Security Features (Part 3)
+## Additional Security Features
 
 Beyond the baseline controls from Parts 1 and 2 (bcrypt hashing, JWT, role-based access control, input validation, rate limiting, Helmet/CSP, HTTPS and ownership checks), Part 3 adds two further features. Each closes a specific gap found while reviewing the Part 2 code.
 
