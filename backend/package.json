@@ -5,6 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
+    "test:unit": "jest --coverage --runInBand",
     "dev": "nodemon src/server.js",
     "seed:admin": "node src/seed/createAdmin.js",
     "test:api": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure",
@@ -25,9 +26,14 @@
     "mongoose": "^9.11.1"
   },
   "devDependencies": {
+    "jest": "^30.5.2",
     "newman": "^6.2.3",
     "newman-reporter-htmlextra": "^1.23.1",
     "nodemon": "^3.1.14",
     "selfsigned": "^5.5.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "collectCoverageFrom": ["src/**/*.js", "!src/seed/**"]
   }
 }
