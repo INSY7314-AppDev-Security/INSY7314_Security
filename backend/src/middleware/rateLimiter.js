@@ -18,7 +18,9 @@ function limitReached(limiterName) {
 // Limit login attempts
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,                   // max 5 attempts per window
+  // 5 attempts per window by default. LOGIN_RATE_LIMIT_MAX lets automated test
+  // environments raise it; production keeps the default.
+  max: parseInt(process.env.LOGIN_RATE_LIMIT_MAX, 10) || 5,
   message: {
     success: false,
     message: 'Too many login attempts. Please try again after 15 minutes.'

@@ -10,7 +10,9 @@
     "test:api": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure",
     "test:api:report": "newman run postman/HustleHub-Part2.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure -r cli,htmlextra --reporter-htmlextra-export ../docs/newman/newman-report.html",
     "test:checks": "node --test \"checks/*.check.js\"",
-    "test:api:security": "newman run postman/HustleHub-Part3-Security.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure"
+    "test": "jest --runInBand",
+    "test:api:security": "newman run postman/HustleHub-Part3-Security.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure",
+    "test:api:part3": "newman run postman/HustleHub-Part3-Security.postman_collection.json -e postman/HustleHub.local.postman_environment.json --insecure --env-var host=https://localhost:5000"
   },
   "keywords": [],
   "author": "HustleHub+ Team",
@@ -30,8 +32,16 @@
     "winston-loki": "^6.1.7"
   },
   "devDependencies": {
+    "jest": "^30.5.2",
     "newman": "^6.2.3",
     "newman-reporter-htmlextra": "^1.23.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "selfsigned": "^5.5.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
   }
 }
