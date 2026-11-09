@@ -1,0 +1,279 @@
+{
+  "info": {
+    "name": "HustleHub+ API - Part 3 Security Checks (CORS and body limit)",
+    "description": "Checks the CORS rule and the request body size limit. Needs the API running with the default CORS_ORIGIN (http://localhost:3000). None of these requests use the login rate limit, so they can be run again and again.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "apiHost",
+      "value": "https://localhost:5000"
+    },
+    {
+      "key": "allowedOrigin",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "evilOrigin",
+      "value": "https://evil.example.com"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. CORS",
+      "item": [
+        {
+          "name": "1.1 Allowed frontend origin gets the CORS header",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Access-Control-Allow-Origin is exactly the frontend origin', () => {",
+                  "  pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql(pm.variables.get('allowedOrigin'));",
+                  "});",
+                  "pm.test('It is never a wildcard', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.not.eql('*'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{allowedOrigin}}"
+              }
+            ],
+            "url": "{{apiHost}}/"
+          }
+        },
+        {
+          "name": "1.2 Unknown website gets no CORS header (browser will block it)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('The API still answers (CORS is enforced by the browser)', () => pm.response.to.have.status(200));",
+                  "pm.test('No Access-Control-Allow-Origin header is sent', () => pm.expect(pm.response.headers.has('Access-Control-Allow-Origin')).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{evilOrigin}}"
+              }
+            ],
+            "url": "{{apiHost}}/"
+          }
+        },
+        {
+          "name": "1.3 Preflight from the allowed origin is accepted",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 204', () => pm.response.to.have.status(204));",
+                  "pm.test('The allowed origin is returned', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql(pm.variables.get('allowedOrigin')));",
+                  "pm.test('POST is allowed', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Methods')).to.include('POST'));",
+                  "pm.test('The Authorization header is allowed', () => pm.expect(pm.response.headers.get('Access-Control-Allow-Headers').toLowerCase()).to.include('authorization'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{allowedOrigin}}"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "authorization,content-type"
+              }
+            ],
+            "url": "{{apiHost}}/api/gigs"
+          }
+        },
+        {
+          "name": "1.4 Preflight from an unknown origin gets no CORS header",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('No Access-Control-Allow-Origin header is sent', () => pm.expect(pm.response.headers.has('Access-Control-Allow-Origin')).to.be.false);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "{{evilOrigin}}"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST"
+              }
+            ],
+            "url": "{{apiHost}}/api/gigs"
+          }
+        },
+        {
+          "name": "1.5 Requests without an Origin header (Postman, Newman, curl) still work",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{apiHost}}/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Request body size limit (10 kb)",
+      "item": [
+        {
+          "name": "2.1 Body of about 20 kb is refused with 413",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.variables.set('bigBody', JSON.stringify({ email: 'big@example.com', password: 'x'.repeat(20000) }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 413', () => pm.response.to.have.status(413));",
+                  "pm.test('The message is safe and clear', () => pm.expect(pm.response.json().message).to.eql('Request body is too large'));",
+                  "pm.test('No stack trace or file path is shown', () => pm.expect(pm.response.text()).to.not.match(/stack|node_modules|at .*\\.js/i));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{apiHost}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{{bigBody}}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "2.2 Normal small body is not refused for its size",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400 (validation), not 413', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{apiHost}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": \"small@example.com\" }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "2.3 Broken JSON gives a clean 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Message is controlled', () => pm.expect(pm.response.json().message).to.eql('Invalid JSON in request body'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{apiHost}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"oops\"",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
