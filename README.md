@@ -24,10 +24,11 @@ Part 2 introduces gig management, booking creation, transaction recording, and f
 8. [API Testing with Postman and Newman](#8-api-testing-with-postman-and-newman)
 9. [Frontend Testing](#9-frontend-testing)
 10. [Part 3 – Income & Tax Dashboard and Frontend Enhancements](#10-part-3--income--tax-dashboard-and-frontend-enhancements)
-11. [Testing Evidence](#11-testing-evidence)
-12. [Demonstration Video](#12-demonstration-video)
-13. [Limitations and Future Enhancements](#13-limitations-and-future-enhancements)
-14. [Repository Information](#14-repository-information)
+11. [Part 3 – Additional Security Features](##-Additional-Security-Features (Part 3))
+12. [Testing Evidence](#11-testing-evidence)
+13. [Demonstration Video](#12-demonstration-video)
+14. [Limitations and Future Enhancements](#13-limitations-and-future-enhancements)
+15. [Repository Information](#14-repository-information)
 
 ---
 
