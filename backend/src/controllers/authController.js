@@ -98,7 +98,7 @@ async function login(req, res, next) {
       const updated = await User.findOneAndUpdate(
         { _id: user._id },
         { $inc: { failedLoginAttempts: 1 } },
-        { new: true }
+        { returnDocument: 'after' }
       ).select('+failedLoginAttempts');
 
       if (updated && shouldLock(updated.failedLoginAttempts)) {
