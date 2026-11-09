@@ -1,4 +1,10 @@
 const jwt = require('jsonwebtoken');
+const logger = require('../utils/logger');
+
+// Every refused request is logged, so attacks on the tokens can be seen
+function logAuthFailure(req, reason) {
+  logger.warn('AUTH_FAILED', { reason, ip: req.ip, method: req.method, path: req.originalUrl });
+}
 
 function protect(req, res, next) {
   let token;
@@ -9,6 +15,7 @@ function protect(req, res, next) {
   }
 
   if (!token) {
+    logAuthFailure(req, 'no_token');
     return res.status(401).json({
       success: false,
       message: 'Not authorized, no token provided'
@@ -27,6 +34,7 @@ function protect(req, res, next) {
 
     next(); // allow the request to continue
   } catch (error) {
+    logAuthFailure(req, 'invalid_token');
     return res.status(401).json({
       success: false,
       message: 'Not authorized, token failed'
@@ -34,10 +42,22 @@ function protect(req, res, next) {
   }
 }
 
+// A logged-in user tried something their role does not allow
+function logAccessDenied(req) {
+  logger.warn('ACCESS_DENIED', {
+    userId: req.user && req.user.id,
+    role: req.user && req.user.role,
+    method: req.method,
+    path: req.originalUrl,
+    ip: req.ip
+  });
+}
+
 // Only lets certain roles through, for example authorizeRoles('freelancer')
 function authorizeRoles(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user || !allowedRoles.includes(req.user.role)) {
+      logAccessDenied(req);
       return res.status(403).json({
         success: false,
         message: 'Access denied: you do not have permission to do this'

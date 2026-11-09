@@ -1,6 +1,8 @@
 const User = require('../models/User');
 const { hashPassword, comparePassword } = require('../utils/hashPassword');
 const generateToken = require('../utils/generateToken');
+const logger = require('../utils/logger');
+const { maskEmail } = require('../utils/logger');
 
 async function register(req, res, next) {
   try {
@@ -9,6 +11,7 @@ async function register(req, res, next) {
     // 1. Check if the email is already registered
     const existingUser = await User.findOne({ email });
     if (existingUser) {
+      logger.warn('REGISTER_DUPLICATE_EMAIL', { email: maskEmail(email), ip: req.ip });
       return res.status(409).json({
         success: false,
         message: 'Email already registered'
@@ -24,6 +27,8 @@ async function register(req, res, next) {
       password: hashedPassword,
       role: role || 'client'    // default role is client
     });
+
+    logger.info('REGISTER_SUCCESS', { userId: String(newUser._id), role: newUser.role, ip: req.ip });
 
     // 4. Send success response (never send the password back)
     res.status(201).json({
@@ -55,6 +60,7 @@ async function login(req, res, next) {
     // 1. Find the user by email (+password brings back the hidden hash)
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
+      logger.warn('LOGIN_FAILED', { reason: 'unknown_email', email: maskEmail(email), ip: req.ip });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -63,6 +69,7 @@ async function login(req, res, next) {
 
     const isPasswordCorrect = await comparePassword(password, user.password);
     if (!isPasswordCorrect) {
+      logger.warn('LOGIN_FAILED', { reason: 'wrong_password', userId: String(user._id), ip: req.ip });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -70,6 +77,8 @@ async function login(req, res, next) {
     }
 
     const token = generateToken(user);
+
+    logger.info('LOGIN_SUCCESS', { userId: String(user._id), role: user.role, ip: req.ip });
 
     res.status(200).json({
       success: true,

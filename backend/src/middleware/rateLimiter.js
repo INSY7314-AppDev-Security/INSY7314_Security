@@ -1,5 +1,19 @@
 const rateLimit = require('express-rate-limit');
 const { ipKeyGenerator } = require('express-rate-limit');
+const logger = require('../utils/logger');
+
+// Sends the same JSON answer as before, and also logs the blocked request
+function limitReached(limiterName) {
+  return (req, res, next, options) => {
+    logger.warn('RATE_LIMIT_HIT', {
+      limiter: limiterName,
+      userId: req.user && req.user.id,
+      ip: req.ip,
+      path: req.originalUrl
+    });
+    res.status(options.statusCode).json(options.message);
+  };
+}
 
 // Limit login attempts
 const loginLimiter = rateLimit({
@@ -9,6 +23,7 @@ const loginLimiter = rateLimit({
     success: false,
     message: 'Too many login attempts. Please try again after 15 minutes.'
   },
+  handler: limitReached('login'),
   standardHeaders: true,
   legacyHeaders: false
 });
@@ -24,6 +39,7 @@ const bookingLimiter = rateLimit({
     success: false,
     message: 'Too many booking attempts. Please try again after 15 minutes.'
   },
+  handler: limitReached('booking'),
   standardHeaders: true,
   legacyHeaders: false
 });
