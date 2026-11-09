@@ -24,11 +24,11 @@ Part 2 introduces gig management, booking creation, transaction recording, and f
 8. [API Testing with Postman and Newman](#8-api-testing-with-postman-and-newman)
 9. [Frontend Testing](#9-frontend-testing)
 10. [Part 3 – Income & Tax Dashboard and Frontend Enhancements](#10-part-3--income--tax-dashboard-and-frontend-enhancements)
-11. [Part 3 – Additional Security Features](##-Additional-Security-Features)
-12. [Testing Evidence](#11-testing-evidence)
-13. [Demonstration Video](#12-demonstration-video)
-14. [Limitations and Future Enhancements](#13-limitations-and-future-enhancements)
-15. [Repository Information](#14-repository-information)
+11. [Part 3 – Additional Security Features](#11-part-3--additional-security-features)
+12. [Testing Evidence](#12-testing-evidence)
+13. [Demonstration Video](#13-demonstration-video)
+14. [Limitations and Future Enhancements](#14-limitations-and-future-enhancements)
+15. [Repository Information](#15-repository-information)
 
 ---
 
@@ -298,6 +298,8 @@ Security controls are applied across authentication, request processing, resourc
 | Controlled error handling | Reduces exposure of internal stack traces and file paths. |
 | Environment variables | Keep credentials and secrets separate from committed source code. |
 | Server-controlled booking data | Prevents the frontend from being trusted as the authority for booking prices and user identities. |
+| Account lockout and timing-safe login | Locks an account after repeated failed logins and stops login timing or messages revealing which emails exist (Part 3, see section 11). |
+| Server-side session revocation | Cancels all of a user's tokens on logout and checks every token against the database, including the user's current role (Part 3, see section 11). |
 
 ### Important Security Decisions
 
@@ -461,89 +463,7 @@ This is an estimation only and does not include actual SARS rebates or official 
 ### Environment Variable
 Create a file called `.env` in the `frontend` folder with:
 
-## 11. Testing Evidence
-
-The repository includes supporting evidence for the application's authentication and security testing.
-
-### 11.1 Part 1 Evidence
-
-The original screenshots are stored in `docs/screenshots/` and include evidence of:
-
-- Successful registration and login.
-- Duplicate registration and incorrect password rejection.
-- Protected endpoint access and invalid-token rejection.
-- Weak password validation.
-- Postman collection execution.
-
-### 11.2 Part 2 Newman Evidence
-
-The following images document the expanded API testing process.
-
-**Newman terminal summary**
-
-![Newman terminal execution summary](docs/screenshots/12-newman-run-summary.png)
-
-**Newman HTML report summary**
-
-![Newman HTML report summary](docs/screenshots/13-newman-report-summary.png)
-
-**Requests grouped by collection folder**
-
-![Newman report requests](docs/screenshots/14-newman-report-requests.png)
-
-**Booking rate-limiting evidence**
-
-![Newman booking rate-limiting results](docs/screenshots/15-newman-report-ratelimit-booking.png)
-
-The corresponding report is stored under `docs/newman/`, according to the configured report output path.
-
-The demonstration video provides additional evidence of the full-stack application and frontend testing.
-
----
-
-
-
-## 12. Demonstration Video
-
-The demonstration video provides a practical walkthrough of HustleHub+, including the full-stack application and frontend testing.
-
-### Part 2 — Full-Stack Application and Frontend Testing
-
-**[Watch the HustleHub+ Part 2 Demonstration on YouTube](https://youtu.be/AIqp65AaJ7w)**
-
-The video serves as the primary demonstration of the expanded application and its frontend functionality.
-
-### Part 1 — Secure Backend Foundation
-
-**[Watch the Part 1 Backend Demonstration](https://youtu.be/-_D20fWGG3Q)**
-
-The original demonstration covers the backend authentication foundation, including HTTPS, registration, login, JWT generation, protected endpoints, and rejection of invalid or missing tokens.
-
----
-
-## 13. Limitations and Future Enhancements
-
-Although HustleHub+ supports the core freelance marketplace workflow, several enhancements could be introduced in future development.
-
-**Simulated payments:** Booking confirmations and transaction records simulate marketplace activity; the application does not integrate a real payment gateway.
-
-**Development HTTPS:** The self-signed certificate is intended for local development, not production deployment.
-
-**Future enhancements:**
-- Real payment gateway integration.
-- Notifications for bookings and status changes.
-- Expanded client, freelancer, and administrator dashboards.
-- More detailed financial reporting.
-- Additional frontend and integration tests.
-- Continuous integration and continuous deployment (CI/CD).
-- Production deployment, monitoring, and infrastructure hardening.
-- Further accessibility and usability improvements.
-
-These are potential improvements rather than claims about existing functionality.
-
----
-
-## Additional Security Features
+## 11. Part 3 – Additional Security Features
 
 Beyond the baseline controls from Parts 1 and 2 (bcrypt hashing, JWT, role-based access control, input validation, rate limiting, Helmet/CSP, HTTPS and ownership checks), Part 3 adds two further features. Each closes a specific gap found while reviewing the Part 2 code.
 
@@ -668,7 +588,91 @@ The collection `backend/postman/HustleHub-Part3-Security.postman_collection.json
 
 ![Newman session revocation tests](docs/screenshots/p3-matteo-05-newman-session-tests.png)
 
-## 14. Repository Information
+---
+
+## 12. Testing Evidence
+
+The repository includes supporting evidence for the application's authentication and security testing.
+
+### 12.1 Part 1 Evidence
+
+The original screenshots are stored in `docs/screenshots/` and include evidence of:
+
+- Successful registration and login.
+- Duplicate registration and incorrect password rejection.
+- Protected endpoint access and invalid-token rejection.
+- Weak password validation.
+- Postman collection execution.
+
+### 12.2 Part 2 Newman Evidence
+
+The following images document the expanded API testing process.
+
+**Newman terminal summary**
+
+![Newman terminal execution summary](docs/screenshots/12-newman-run-summary.png)
+
+**Newman HTML report summary**
+
+![Newman HTML report summary](docs/screenshots/13-newman-report-summary.png)
+
+**Requests grouped by collection folder**
+
+![Newman report requests](docs/screenshots/14-newman-report-requests.png)
+
+**Booking rate-limiting evidence**
+
+![Newman booking rate-limiting results](docs/screenshots/15-newman-report-ratelimit-booking.png)
+
+The corresponding report is stored under `docs/newman/`, according to the configured report output path.
+
+The demonstration video provides additional evidence of the full-stack application and frontend testing.
+
+---
+
+
+
+## 13. Demonstration Video
+
+The demonstration video provides a practical walkthrough of HustleHub+, including the full-stack application and frontend testing.
+
+### Part 2 — Full-Stack Application and Frontend Testing
+
+**[Watch the HustleHub+ Part 2 Demonstration on YouTube](https://youtu.be/AIqp65AaJ7w)**
+
+The video serves as the primary demonstration of the expanded application and its frontend functionality.
+
+### Part 1 — Secure Backend Foundation
+
+**[Watch the Part 1 Backend Demonstration](https://youtu.be/-_D20fWGG3Q)**
+
+The original demonstration covers the backend authentication foundation, including HTTPS, registration, login, JWT generation, protected endpoints, and rejection of invalid or missing tokens.
+
+---
+
+## 14. Limitations and Future Enhancements
+
+Although HustleHub+ supports the core freelance marketplace workflow, several enhancements could be introduced in future development.
+
+**Simulated payments:** Booking confirmations and transaction records simulate marketplace activity; the application does not integrate a real payment gateway.
+
+**Development HTTPS:** The self-signed certificate is intended for local development, not production deployment.
+
+**Future enhancements:**
+- Real payment gateway integration.
+- Notifications for bookings and status changes.
+- Expanded client, freelancer, and administrator dashboards.
+- More detailed financial reporting.
+- Additional frontend and integration tests.
+- Continuous integration and continuous deployment (CI/CD).
+- Production deployment, monitoring, and infrastructure hardening.
+- Further accessibility and usability improvements.
+
+These are potential improvements rather than claims about existing functionality.
+
+---
+
+## 15. Repository Information
 
 **GitHub Repository:** [INSY7314_Security](https://github.com/INSY7314-AppDev-Security/INSY7314_Security)
 
