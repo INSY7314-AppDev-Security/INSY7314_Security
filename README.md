@@ -23,10 +23,11 @@ Part 2 introduces gig management, booking creation, transaction recording, and f
 7. [Security Implementation](#7-security-implementation)
 8. [API Testing with Postman and Newman](#8-api-testing-with-postman-and-newman)
 9. [Frontend Testing](#9-frontend-testing)
-10. [Testing Evidence](#10-testing-evidence)
-11. [Demonstration Video](#11-demonstration-video)
-12. [Limitations and Future Enhancements](#12-limitations-and-future-enhancements)
-13. [Repository Information](#13-repository-information)
+10. [Part 3 – Income & Tax Dashboard and Frontend Enhancements](#10-part-3--income--tax-dashboard-and-frontend-enhancements)
+11. [Testing Evidence](#11-testing-evidence)
+12. [Demonstration Video](#12-demonstration-video)
+13. [Limitations and Future Enhancements](#13-limitations-and-future-enhancements)
+14. [Repository Information](#14-repository-information)
 
 ---
 
@@ -413,11 +414,58 @@ Frontend testing and backend security testing serve different purposes. Even if 
 
 ---
 
-## 10. Testing Evidence
+## 10. Part 3 – Income & Tax Dashboard and Frontend Enhancements
+
+**Contributor:** Justin Fussell
+
+I was responsible for the React frontend, connecting it to the backend API, and building the Income & Tax Dashboard required for Part 3. I also completed several Part 2 fixes and usability improvements.
+
+### What was built
+- Registration and Login pages with clear guidance and success/error messages
+- Browse Gigs, Create Gig, and Book a Gig pages
+- Income & Tax Dashboard for freelancers
+- Transactions page
+- Clean navigation with role-aware buttons
+- Improved UI/UX with modern cards, better spacing, loading states, empty states, and a Copy button for Gig IDs
+- Booking confirmation step to prevent accidental bookings
+
+### Tax Estimation Logic
+The tax calculation uses a simplified version of South Africa’s progressive income tax rates (2026 brackets, rounded for the assignment). It is calculated on the frontend after retrieving the freelancer’s total earned amount from the backend.
+
+| Income Range              | Tax Calculation                              |
+|---------------------------|----------------------------------------------|
+| R0 – R237,100             | 18%                                          |
+| R237,101 – R370,500       | R42,678 + 26% of the amount over R237,100    |
+| R370,501 – R512,800       | R77,362 + 31% of the amount over R370,500    |
+| R512,801 – R673,000       | R121,475 + 36% of the amount over R512,800   |
+| R673,001 – R857,900       | R179,147 + 39% of the amount over R673,000   |
+| R857,901 – R1,817,000     | R251,258 + 41% of the amount over R857,900   |
+| Above R1,817,000          | R644,489 + 45% of the amount over R1,817,000 |
+
+The dashboard displays:
+- Total Earned
+- Estimated Tax
+- After Tax amount
+
+This is an estimation only and does not include actual SARS rebates or official calculations.
+
+### Other Fixes Completed
+- Moved the API URL to an environment variable (`REACT_APP_API_URL`) so it is not hard-coded
+- Added a Content Security Policy (CSP) meta tag in `index.html`
+- Fixed the frontend so freelancers can also browse all gigs
+- Regenerated `package-lock.json` so `npm ci` works cleanly
+- Replaced placeholder frontend tests with real tests that pass
+- Improved form feedback, toasts, and overall usability
+
+### Environment Variable
+Create a file called `.env` in the `frontend` folder with:
+
+
+## 11. Testing Evidence
 
 The repository includes supporting evidence for the application's authentication and security testing.
 
-### 10.1 Part 1 Evidence
+### 11.1 Part 1 Evidence
 
 The original screenshots are stored in `docs/screenshots/` and include evidence of:
 
@@ -427,7 +475,7 @@ The original screenshots are stored in `docs/screenshots/` and include evidence 
 - Weak password validation.
 - Postman collection execution.
 
-### 10.2 Part 2 Newman Evidence
+### 11.2 Part 2 Newman Evidence
 
 The following images document the expanded API testing process.
 
@@ -453,7 +501,7 @@ The demonstration video provides additional evidence of the full-stack applicati
 
 ---
 
-## 11. Demonstration Video
+## 12. Demonstration Video
 
 The demonstration video provides a practical walkthrough of HustleHub+, including the full-stack application and frontend testing.
 
@@ -471,7 +519,7 @@ The original demonstration covers the backend authentication foundation, includi
 
 ---
 
-## 12. Limitations and Future Enhancements
+## 13. Limitations and Future Enhancements
 
 Although HustleHub+ supports the core freelance marketplace workflow, several enhancements could be introduced in future development.
 
@@ -493,7 +541,7 @@ These are potential improvements rather than claims about existing functionality
 
 ---
 
-## 13. Repository Information
+## 14. Repository Information
 
 **GitHub Repository:** [INSY7314_Security](https://github.com/INSY7314-AppDev-Security/INSY7314_Security)
 
