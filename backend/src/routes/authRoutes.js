@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { register, login } = require('../controllers/authController');
+const { register, login, logout } = require('../controllers/authController');
 const { protect, authorizeRoles } = require('../middleware/authMiddleware');
 const { loginLimiter } = require('../middleware/rateLimiter');
 const {
@@ -13,6 +13,9 @@ const {
 // Public routes
 router.post('/register', registerValidationRules, handleValidationErrors, register);
 router.post('/login', loginLimiter, loginValidationRules, handleValidationErrors, login);
+
+// Logout: cancels all of this user's tokens on the server
+router.post('/logout', protect, logout);
 
 // Protected route: only works with a valid token
 router.get('/me', protect, (req, res) => {

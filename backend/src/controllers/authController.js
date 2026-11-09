@@ -1,5 +1,13 @@
 const User = require('../models/User');
-const { hashPassword, comparePassword } = require('../utils/hashPassword');
+const { hashPassword, comparePassword, DUMMY_HASH } = require('../utils/hashPassword');
+const {
+  isLocked,
+  lockExpired,
+  minutesLeft,
+  shouldLock,
+  lockUntilDate
+} = require('../utils/lockout');
+const { logSecurityEvent } = require('../utils/securityEvents');
 const generateToken = require('../utils/generateToken');
 
 async function register(req, res, next) {
@@ -52,24 +60,78 @@ async function login(req, res, next) {
   try {
     const { email, password } = req.body;
 
-    // 1. Find the user by email (+password brings back the hidden hash)
-    const user = await User.findOne({ email }).select('+password');
+    // 1. Find the user by email (+ brings back fields that are hidden by default)
+    const user = await User.findOne({ email }).select('+password +failedLoginAttempts +lockUntil +tokenVersion');
+
+    // Unknown email: do a fake password check so the response takes as long as
+    // a real failure, then give the same generic answer.
     if (!user) {
+      await comparePassword(password, DUMMY_HASH);
+      logSecurityEvent('LOGIN_FAILED', { email, ip: req.ip, reason: 'unknown_email' });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
     }
 
+    // 2. A lock that has run out is cleared, so the user gets a fresh start
+    if (lockExpired(user)) {
+      await User.updateOne({ _id: user._id }, { $set: { failedLoginAttempts: 0, lockUntil: null } });
+      user.failedLoginAttempts = 0;
+      user.lockUntil = null;
+    }
+
+    // 3. Still locked: refuse WITHOUT checking the password, so even the
+    //    correct password cannot be used to guess its way in during the lock.
+    if (isLocked(user)) {
+      logSecurityEvent('LOGIN_BLOCKED_LOCKED', { userId: String(user._id), email, ip: req.ip });
+      return res.status(423).json({
+        success: false,
+        message: `Account temporarily locked after too many failed attempts. Try again in ${minutesLeft(user)} minute(s).`
+      });
+    }
+
+    // 4. Wrong password: count it, and lock the account when the limit is reached.
+    //    $inc is atomic, so two requests at the same moment cannot undercount.
     const isPasswordCorrect = await comparePassword(password, user.password);
     if (!isPasswordCorrect) {
+      const updated = await User.findOneAndUpdate(
+        { _id: user._id },
+        { $inc: { failedLoginAttempts: 1 } },
+        { returnDocument: 'after' }
+      ).select('+failedLoginAttempts');
+
+      if (updated && shouldLock(updated.failedLoginAttempts)) {
+        await User.updateOne({ _id: user._id }, { $set: { lockUntil: lockUntilDate() } });
+        logSecurityEvent('ACCOUNT_LOCKED', {
+          userId: String(user._id),
+          email,
+          ip: req.ip,
+          failedAttempts: updated.failedLoginAttempts
+        });
+      } else {
+        logSecurityEvent('LOGIN_FAILED', {
+          userId: String(user._id),
+          email,
+          ip: req.ip,
+          reason: 'wrong_password',
+          failedAttempts: updated ? updated.failedLoginAttempts : undefined
+        });
+      }
+
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
       });
+    }
+
+    // 5. Success: clear any earlier failures
+    if (user.failedLoginAttempts > 0 || user.lockUntil) {
+      await User.updateOne({ _id: user._id }, { $set: { failedLoginAttempts: 0, lockUntil: null } });
     }
 
     const token = generateToken(user);
+    logSecurityEvent('LOGIN_SUCCESS', { userId: String(user._id), email, ip: req.ip });
 
     res.status(200).json({
       success: true,
@@ -87,9 +149,28 @@ async function login(req, res, next) {
   }
 }
 
+// POST /api/auth/logout  (any logged-in user)
+// Raises the user's tokenVersion, which cancels EVERY token issued so far
+// (this device and any others). Deleting the token in the browser alone would
+// leave a stolen copy working until it expires.
+async function logout(req, res, next) {
+  try {
+    await User.updateOne({ _id: req.user.id }, { $inc: { tokenVersion: 1 } });
+    logSecurityEvent('LOGOUT', { userId: String(req.user.id), ip: req.ip });
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out. All previous tokens have been invalidated.'
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
 module.exports = {
   register,
-  login
+  login,
+  logout
 };
 
 //Plain English Breakdown for clarity
